@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FreeBoard_Installer</name>
 	<properties>
-		<!-- <bundle.name>nsb-${project.version}</bundle.name> -->
+
 		<jetty.version>7.5.4.v20111024</jetty.version>
 		<camel.version>2.10.1</camel.version>
 		<zk.version>6.5.0</zk.version>
@@ -19,18 +19,41 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+	<repositories>
+		<repository>
+			<id>java.net jni</id>
+			<name>java.nt JNI Snapshot Repository</name>
+			<url>https://maven.java.net/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>PJC</id>
+			<name>Sparetime Repository</name>
+			<url>http://www.sparetimelabs.com/maven2</url>
+		</repository>
+		<repository>
+			<id>ProjectRepo</id>
+			<name>ProjectRepo</name>
+			<url>file://${project.basedir}/lib</url>
+		</repository>
+
+	</repositories>
 	<dependencies>
-	<!-- jna -->
+		<dependency>
+			<groupId>doube</groupId>
+			<artifactId>bonej</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- jna -->
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
 			<version>${jna.version}</version>
 		</dependency>
 		<dependency>
-	      <groupId>com.sparetimelabs</groupId>
-	      <artifactId>purejavacomm</artifactId>
-	      <version>0.0.17</version>
-	   </dependency>
+			<groupId>com.sparetimelabs</groupId>
+			<artifactId>purejavacomm</artifactId>
+			<version>0.0.17</version>
+		</dependency>
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout</artifactId>
