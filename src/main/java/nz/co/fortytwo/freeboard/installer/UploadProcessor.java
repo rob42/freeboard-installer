@@ -49,7 +49,7 @@ public class UploadProcessor {
 		this.textArea = textArea;
 	}
 
-	public void processChart(File hexFile, String commPort, String device, String dudeDir) throws Exception {
+	public void processUpload(File hexFile, String commPort, String device, String dudeDir) throws Exception {
 		// make a file
 		if (!hexFile.exists()) {
 			if (manager) {
@@ -83,10 +83,11 @@ public class UploadProcessor {
 		
 		//tools/avrdude -patmega1280 -carduino -P/dev/ttyUSB0 -b57600 -D -v -v -v -v -Uflash:w:FreeBoardPLC.hex:a -C$ARDUINO_HOME/hardware/tools/avrdude.conf
 		
-		String pDevice = "-p"+device;
-		executeAvrdude(hexFile, Arrays.asList(dudeDir+"/tools/avrdude", pDevice, "-carduino", "-P"+commPort, "-b57600", "-D", "-v", "-v", "-v", "-v", "-Uflash:w:FreeBoardPLC.hex:a", "-C"+dudeDir+"/tools/avrdude.conf"));
+			String pDevice = "-p"+device;
+			String avrdude = "avrdude";
+		executeAvrdude(hexFile, Arrays.asList(dudeDir + "/" + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-q","-q","-v", "-v", 
+				"-Uflash:w:FreeBoardPLC.hex:a", "-C" + dudeDir + "/avrdude.conf"));
 
-		System.out.print("Uploading " + hexFile.getName() + " was completed successfully!\n");
 	}
 
 	/**
@@ -104,10 +105,11 @@ public class UploadProcessor {
 
 		ProcessBuilder pb = new ProcessBuilder(argList);
 		pb.directory(hexFile.getParentFile());
-		// pb.inheritIO();
+		//pb.inheritIO();
 		if (manager) {
 			ForkWorker fork = new ForkWorker(textArea, pb);
-			fork.execute();
+			//fork.execute();
+			fork.doInBackground();
 			while (!fork.isDone()) {
 				Thread.currentThread().sleep(500);
 				// System.out.print(".");

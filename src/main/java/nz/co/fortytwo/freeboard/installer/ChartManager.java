@@ -70,19 +70,20 @@ public class ChartManager extends JFrame {
 	JComboBox<String> deviceComboBox;
 	HashMap<String, String> deviceMap = new HashMap<String, String>();
 	JComboBox<String> portComboBox;
+	JComboBox<String> portComboBox1;
 
 	public ChartManager(String name) {
 		super(name);
 
 		String[] devices = new String[] { "ArduIMU v3", "Arduino Mega 1280", "Arduino Mega 2560" };
-		deviceMap.put(devices[0], "atmega328");
+		deviceMap.put(devices[0], "atmega328p");
 		deviceMap.put(devices[1], "atmega1280");
 		deviceMap.put(devices[2], "atmega2560");
 		deviceComboBox = new JComboBox<String>(devices);
 
-		File toolsDir = new File("./src/main/resources/tools");
+		toolsDir = new File("./src/main/resources/tools");
 		if (!toolsDir.exists()) {
-			System.out.println("Cannot locate the avrdude");
+			System.out.println("Cannot locate avrdude");
 		}
 		@SuppressWarnings("unchecked")
 		Enumeration<CommPortIdentifier> commPorts = CommPortIdentifier.getPortIdentifiers();
@@ -99,7 +100,8 @@ public class ChartManager extends JFrame {
 				}
 			}
 		}
-		portComboBox = new JComboBox<String>(commModel);
+		portComboBox = new JComboBox<String>( commModel.toArray(new String[0]));
+		portComboBox1 = new JComboBox<String>( commModel.toArray(new String[0]));
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.addWidgets();
@@ -120,7 +122,7 @@ public class ChartManager extends JFrame {
 
 		westPanel.add(portComboBox, "wrap");
 
-		westPanel.add(new JLabel("Select device:"));
+		westPanel.add(new JLabel("Select device:"),"gap unrelated");
 
 		westPanel.add(deviceComboBox, "wrap");
 
@@ -164,7 +166,7 @@ public class ChartManager extends JFrame {
 
 		westCalPanel.add(new JLabel("Select comm port:"));
 
-		westCalPanel.add(portComboBox, "wrap");
+		westCalPanel.add(portComboBox1, "wrap");
 		JButton startCal = new JButton("Start");
 		startCal.addActionListener(new ActionListener() {
 			 
@@ -350,7 +352,8 @@ public class ChartManager extends JFrame {
 			try {
 				UploadProcessor processor = new UploadProcessor(true, textArea);
 				redirectSystemStreams();
-				processor.processChart(f, commPort, device, toolsDir.getAbsolutePath());
+				System.out.println("Uploading "+f.getAbsolutePath()+" to "+device+" on "+commPort +", tools at"+toolsDir);
+				processor.processUpload(f, commPort, device, toolsDir.getAbsolutePath());
 
 			} catch (Exception e) {
 				System.out.print(e.getMessage() + "\n");

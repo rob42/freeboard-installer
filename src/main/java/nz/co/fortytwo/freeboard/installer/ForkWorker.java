@@ -49,6 +49,7 @@ class ForkWorker extends SwingWorker<String,String> {
   public String doInBackground() {
     //Process process;
     try {
+    	builder.redirectErrorStream(true);
       process = builder.start();
       InputStream res = process.getInputStream();
       byte[] buffer = new byte[1];
@@ -64,6 +65,7 @@ class ForkWorker extends SwingWorker<String,String> {
     }
     catch (Exception e) {
       e.printStackTrace();
+      return "Failed";
     }
     return "";  // Don't care
   }
