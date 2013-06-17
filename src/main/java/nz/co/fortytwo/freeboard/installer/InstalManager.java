@@ -51,17 +51,17 @@ import net.miginfocom.swing.MigLayout;
 import purejavacomm.CommPortIdentifier;
 
 /** @see http://stackoverflow.com/questions/4053090 */
-public class ChartManager extends JFrame {
+public class InstalManager extends JFrame {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final String title = "Select a file";
+	
 	private ProcessingPanel processingPanel = new ProcessingPanel();
 	private LoadingPanel uploadingPanel = new LoadingPanel();
 	private CalibratePanel calibrationPanel = new CalibratePanel();
-	private JLabel result = new JLabel(title, JLabel.CENTER);
+	
 	private ChartFileChooser chartFileChooser = new ChartFileChooser();
 	private HexFileChooser hexFileChooser = new HexFileChooser();
 	
@@ -72,7 +72,7 @@ public class ChartManager extends JFrame {
 	JComboBox<String> portComboBox;
 	JComboBox<String> portComboBox1;
 
-	public ChartManager(String name) {
+	public InstalManager(String name) {
 		super(name);
 
 		String[] devices = new String[] { "ArduIMU v3", "Arduino Mega 1280", "Arduino Mega 2560" };
@@ -116,15 +116,22 @@ public class ChartManager extends JFrame {
 		JPanel uploadPanel = new JPanel();
 		uploadPanel.setLayout(new BorderLayout());
 		uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
-		JPanel westPanel = new JPanel(new MigLayout());
+		JPanel westUploadPanel = new JPanel(new MigLayout());
+		String info="\nUse this panel to upload compiled code to the arduino devices.\n\n" +
+				" These files are ended in '.hex'\n" +
+				"\nThe code can be downloaded from github (https://github.com/rob42),\n" +
+				" see the 'Release' sub-directories\n\n" +
+				"Output of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo = new JTextArea(info);
+		jTextInfo.setEditable(false);
+		westUploadPanel.add(jTextInfo,"span,wrap");
+		westUploadPanel.add(new JLabel("Select comm port:"));
 
-		westPanel.add(new JLabel("Select comm port:"));
+		westUploadPanel.add(portComboBox, "wrap");
 
-		westPanel.add(portComboBox, "wrap");
+		westUploadPanel.add(new JLabel("Select device:"),"gap unrelated");
 
-		westPanel.add(new JLabel("Select device:"),"gap unrelated");
-
-		westPanel.add(deviceComboBox, "wrap");
+		westUploadPanel.add(deviceComboBox, "wrap");
 
 		hexFileChooser.setApproveButtonText("Upload");
 		hexFileChooser.setAcceptAllFileFilterUsed(false);
@@ -144,9 +151,9 @@ public class ChartManager extends JFrame {
 				return false;
 			}
 		});
-		westPanel.add(hexFileChooser, "span, wrap");
+		westUploadPanel.add(hexFileChooser, "span, wrap");
 
-		uploadPanel.add(westPanel, BorderLayout.WEST);
+		uploadPanel.add(westUploadPanel, BorderLayout.WEST);
 		tabPane.addTab("Upload", uploadPanel);
 
 		// charts
@@ -154,16 +161,39 @@ public class ChartManager extends JFrame {
 		chartPanel.setLayout(new BorderLayout());
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Charts", "tiff", "kap", "KAP", "TIFF", "tif", "TIF");
 		chartFileChooser.setFileFilter(filter);
-		chartPanel.add(chartFileChooser, BorderLayout.WEST);
+		JPanel chartWestPanel = new JPanel(new MigLayout());
+		String info2="\nUse this panel to convert charts into the correct format for FreeBoard.\n" +
+				"\nYou need to select the chart, then click 'Process'.\n " +
+				"\nThe results will be in a directory with the same name as the chart, \n" +
+				"and the chart directory will also be compressed \n" +
+				"into a zip file ready to transfer to your FreeBoard server\n\n" +
+				"Output of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo2 = new JTextArea(info2);
+		jTextInfo2.setEditable(false);
+		chartWestPanel.add(jTextInfo2,"wrap");
+		chartFileChooser.setApproveButtonText("Process");
+		chartWestPanel.add(chartFileChooser, "span,wrap");
+		chartPanel.add(chartWestPanel, BorderLayout.WEST);
 		chartPanel.add(processingPanel, BorderLayout.CENTER);
-		chartPanel.add(result, BorderLayout.SOUTH);
+		
 		tabPane.addTab("Charts", chartPanel);
 
 		// IMU calibration
 		JPanel calPanel = new JPanel();
 		calPanel.setLayout(new BorderLayout());
 		JPanel westCalPanel = new JPanel(new MigLayout());
-
+		String info3="\nUse this panel to calibrate your ArduIMU.\n" +
+				"\nYou should do this as near to the final location as possible,\n" +
+				"and like all compasses, as far from wires and magnetic materials \n" +
+				"as possible.\n" +
+				"\nSelect your comm port, then click 'Start'.\n " +
+				"\nSmoothly and steadily rotate the ArduIMU around all 3 axes (x,y,z)\n" +
+				"several times. Then press stop and the calibration will be performed and\n" +
+				"uploaded to the ArduIMU\n\n"+
+				"Output of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo3 = new JTextArea(info3);
+		jTextInfo3.setEditable(false);
+		westCalPanel.add(jTextInfo3,"span, wrap");
 		westCalPanel.add(new JLabel("Select comm port:"));
 
 		westCalPanel.add(portComboBox1, "wrap");
@@ -188,7 +218,7 @@ public class ChartManager extends JFrame {
 		
 		calPanel.add(westCalPanel, BorderLayout.WEST);
 		calPanel.add(calibrationPanel, BorderLayout.CENTER);
-		calPanel.add(result, BorderLayout.SOUTH);
+		
 		tabPane.addTab("Calibration", calPanel);
 
 	}
@@ -218,7 +248,7 @@ public class ChartManager extends JFrame {
 		@Override
 		public void cancelSelection() {
 			uploadingPanel.clear();
-			result.setText(title);
+			
 		}
 	}
 	
@@ -247,7 +277,7 @@ public class ChartManager extends JFrame {
 		@Override
 		public void cancelSelection() {
 			processingPanel.clear();
-			result.setText(title);
+			
 		}
 	}
 
@@ -525,7 +555,7 @@ public class ChartManager extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 
 			public void run() {
-				new ChartManager("Chart Manager").setVisible(true);
+				new InstalManager("Chart Manager").setVisible(true);
 			}
 		});
 	}
