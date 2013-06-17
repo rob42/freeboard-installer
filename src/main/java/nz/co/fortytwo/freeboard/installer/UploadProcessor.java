@@ -79,14 +79,18 @@ public class UploadProcessor {
 		logger.debug("Uploading hex file:" + hexFile.getPath());
 		// start by running avrdude
 		//ArduIMU
-		//tools/avrdude -patmega328p -carduino -P/dev/ttyUSB0 -b57600 -D -v -v -v -v -Uflash:w:FreeBoardIMU.cpp.hex:i -C$ARDUINO_HOME/hardware/tools/avrdude.conf
+		//tools/avrdude -patmega328p -carduino -P/dev/ttyUSB0 -b57600 -D -q -q -v -v -v -v -Uflash:w:FreeBoardIMU.cpp.hex:i -C$ARDUINO_HOME/hardware/tools/avrdude.conf
 		
 		//tools/avrdude -patmega1280 -carduino -P/dev/ttyUSB0 -b57600 -D -v -v -v -v -Uflash:w:FreeBoardPLC.hex:a -C$ARDUINO_HOME/hardware/tools/avrdude.conf
 		
 			String pDevice = "-p"+device;
 			String avrdude = "avrdude";
-		executeAvrdude(hexFile, Arrays.asList(dudeDir + "/" + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-q","-q","-v", "-v", 
-				"-Uflash:w:FreeBoardPLC.hex:a", "-C" + dudeDir + "/avrdude.conf"));
+			String avrType = ":a";
+			if(device.equals("atmega328p")){
+				avrType=":i";
+			}
+		executeAvrdude(hexFile, Arrays.asList(dudeDir + "/" + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-v", "-v", "-v",
+				"-Uflash:w:"+hexFile.getName()+avrType, "-C" + dudeDir + "/avrdude.conf"));
 
 	}
 
