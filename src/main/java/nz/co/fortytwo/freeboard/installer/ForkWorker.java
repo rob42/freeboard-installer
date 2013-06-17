@@ -32,6 +32,7 @@ class ForkWorker extends SwingWorker<String,String> {
   private JTextArea output; // Where to redirect STDERR & STDOUT to
   private ProcessBuilder builder;
   private Process process;
+  int result=-1;
   
   public ForkWorker(JTextArea output, ProcessBuilder builder) {
     this.output=output;
@@ -49,6 +50,7 @@ class ForkWorker extends SwingWorker<String,String> {
   public String doInBackground() {
     //Process process;
     try {
+    	System.out.print("\nExecuting: "+builder.command()+"\n");
     	builder.redirectErrorStream(true);
       process = builder.start();
       InputStream res = process.getInputStream();
@@ -59,25 +61,32 @@ class ForkWorker extends SwingWorker<String,String> {
         System.out.print(new String(buffer,0,len));
         if (isCancelled()) {
           process.destroy();
-          return "";
+          result=1;
+          return "Cancelled";
         }
       }
+      result=process.exitValue();
     }
     catch (Exception e) {
       e.printStackTrace();
+      result=1;
       return "Failed";
     }
-    return "";  // Don't care
+    return "Success";  // Don't care
   }
   
   protected void done() {
     // Done on the swing event thread
 	  SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
-		    	output.append("\nOK\n");  
+		    	output.append("\nDone\n");  
 		    }
 		  });
     
   }
+
+public int getResult() {
+	return result;
+}
 }
 

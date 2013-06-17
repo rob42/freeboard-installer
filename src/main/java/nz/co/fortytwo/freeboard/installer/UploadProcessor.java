@@ -112,18 +112,23 @@ public class UploadProcessor {
 		//pb.inheritIO();
 		if (manager) {
 			ForkWorker fork = new ForkWorker(textArea, pb);
-			//fork.execute();
-			fork.doInBackground();
+			fork.execute();
+			//fork.doInBackground();
 			while (!fork.isDone()) {
 				Thread.currentThread().sleep(500);
 				// System.out.print(".");
+			}
+			if(fork.getResult()==0){
+				System.out.print("Avrdude completed normally, and the code has been uploaded\n");
+			}else{
+				System.out.print("ERROR: avrdude did not complete normally, and the device may not work correctly\n");
 			}
 		} else {
 			Process p = pb.start();
 			p.waitFor();
 			if (p.exitValue() > 0) {
 				if (manager) {
-					System.out.print("ERROR:avrdude did not complete normally\n");
+					System.out.print("ERROR: avrdude did not complete normally\n");
 				}
 				logger.error("avrdude did not complete normally");
 				return;
