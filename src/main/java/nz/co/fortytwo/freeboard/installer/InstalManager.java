@@ -120,7 +120,8 @@ public class InstalManager extends JFrame {
 		this.setVisible(true);
 		JOptionPane.showMessageDialog(this, "This utility is quite experimental, specifically I develop on Linux, and I dont have MS Windows \nto test on, so dont be surprised by errors!\n"+
 				"If you have problems, copy the output from the right side panel, along with a clear description \nof what you were doing, and email me at robert@42.co.nz"+
-				" so I can recreate and fix the error.");
+				" so I can recreate and fix the error."+
+				"\n\nCopyright 2013 R T Huitema. Licenced under GNU GPL v3");
 	}
 
 	private void addWidgets() {
