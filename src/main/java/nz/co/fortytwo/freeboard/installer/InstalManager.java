@@ -23,12 +23,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.SplashScreen;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Vector;
@@ -39,11 +42,16 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -64,6 +72,9 @@ public class InstalManager extends JFrame {
 	
 	private ChartFileChooser chartFileChooser = new ChartFileChooser();
 	private HexFileChooser hexFileChooser = new HexFileChooser();
+	private JFileChooser arduinoIdeChooser = new JFileChooser();
+	
+	private JTextField arduinoDirTextField = new JTextField(40);
 	
 	private StringBuffer rawBuffer= new StringBuffer();
 	File toolsDir;
@@ -81,10 +92,10 @@ public class InstalManager extends JFrame {
 		deviceMap.put(devices[2], "atmega2560");
 		deviceComboBox = new JComboBox<String>(devices);
 
-		toolsDir = new File("./src/main/resources/tools");
-		if (!toolsDir.exists()) {
-			System.out.println("Cannot locate avrdude");
-		}
+		//toolsDir = new File("./src/main/resources/tools");
+		//if (!toolsDir.exists()) {
+		//	System.out.println("Cannot locate avrdude");
+		//}
 		@SuppressWarnings("unchecked")
 		Enumeration<CommPortIdentifier> commPorts = CommPortIdentifier.getPortIdentifiers();
 		Vector<String> commModel = new Vector<String>();
@@ -110,13 +121,14 @@ public class InstalManager extends JFrame {
 	}
 
 	private void addWidgets() {
+		
 		JTabbedPane tabPane = new JTabbedPane();
 		this.add(tabPane, BorderLayout.CENTER);
 		// upload to arduinos
 		JPanel uploadPanel = new JPanel();
 		uploadPanel.setLayout(new BorderLayout());
 		uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
-		JPanel westUploadPanel = new JPanel(new MigLayout());
+		final JPanel westUploadPanel = new JPanel(new MigLayout());
 		String info="\nUse this panel to upload compiled code to the arduino devices.\n\n" +
 				" These files are ended in '.hex'\n" +
 				"\nThe code can be downloaded from github (https://github.com/rob42),\n" +
@@ -125,12 +137,42 @@ public class InstalManager extends JFrame {
 		JTextArea jTextInfo = new JTextArea(info);
 		jTextInfo.setEditable(false);
 		westUploadPanel.add(jTextInfo,"span,wrap");
-		westUploadPanel.add(new JLabel("Select comm port:"));
 
+		westUploadPanel.add(new JLabel("Select Arduino IDE directory:"),"wrap");
+		arduinoDirTextField.setEditable(false);
+		westUploadPanel.add(arduinoDirTextField, "span 2");
+		arduinoIdeChooser.setApproveButtonText("Select");
+		arduinoIdeChooser.setAcceptAllFileFilterUsed(false);
+		arduinoIdeChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		arduinoIdeChooser.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent evt) {
+				if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
+						toolsDir=new File(arduinoIdeChooser.getSelectedFile(),"/hardware/tools/");
+						if(!toolsDir.exists()){
+							toolsDir=null;
+							JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Aduino IDE directory");
+							return;
+						}
+						arduinoDirTextField.setText(arduinoIdeChooser.getSelectedFile().getAbsolutePath());
+			        } 
+			}
+		});
+		JButton arduinoDirButton = new JButton("Select");
+		arduinoDirButton.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				arduinoIdeChooser.showDialog(westUploadPanel, "Select");
+				
+			}
+		});
+		westUploadPanel.add(arduinoDirButton, "wrap");
+
+		
+		westUploadPanel.add(new JLabel("Select comm port:"));
 		westUploadPanel.add(portComboBox, "wrap");
 
 		westUploadPanel.add(new JLabel("Select device:"),"gap unrelated");
-
 		westUploadPanel.add(deviceComboBox, "wrap");
 
 		hexFileChooser.setApproveButtonText("Upload");
@@ -232,6 +274,11 @@ public class InstalManager extends JFrame {
 
 		@Override
 		public void approveSelection() {
+			if(toolsDir==null){
+				//need to select arduino dir first
+				JOptionPane.showMessageDialog(this, "You must select the Arduino IDE directory first");
+				return;
+			}
 			final File f = hexFileChooser.getSelectedFile();
 
 			new Thread() {
@@ -552,10 +599,25 @@ public class InstalManager extends JFrame {
 
 	public static void main(String[] args) {
 		System.out.println("Current dir:" + new File(".").getAbsolutePath());
+		try {
+		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		        if ("Nimbus".equals(info.getName())) {
+		            UIManager.setLookAndFeel(info.getClassName());
+		            break;
+		        }
+		    }
+		} catch (UnsupportedLookAndFeelException e) {
+		    // handle exception
+		} catch (ClassNotFoundException e) {
+		    // handle exception
+		} catch (InstantiationException e) {
+		    // handle exception
+		} catch (IllegalAccessException e) {
+		    // handle exception
+		}
 		EventQueue.invokeLater(new Runnable() {
-
 			public void run() {
-				new InstalManager("Chart Manager").setVisible(true);
+				new InstalManager("FreeBoard - Install Manager").setVisible(true);
 			}
 		});
 	}
