@@ -1,6 +1,6 @@
 Freeboard Installer
 
-This is an installer to simplify getting a freeboard installation running. It loads the arduinos, calibrates the IMU, and converts charts.
+Installer to aid in freeboard setup tasks. It loads the arduinos, calibrates the IMU, and converts charts.
 
 Its a first cut, and probably going to have some problems. In particular its only tested in a basic way on my Linux dev systems, 
 so it may not as well, or at all on Windows or Mac. If you can test for me that would be appreciated :-)
@@ -27,4 +27,8 @@ Install in a directory that does NOT have spaces!! (Same for all the freeboard s
 7. Follow the notes on each tab
 
 Feedback welcome:-)
-Rob	
+
+
+
+
+>>>>>>> 4d2943f77457663359cfbf13771b5e790066fccb
