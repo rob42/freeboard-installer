@@ -28,7 +28,7 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <mainClass>com.mycompany.mypackage.MyMainClass</mainClass>
+                            <mainClass>nz.co.fortytwo.freeboard.installer.InstalManager</mainClass>
                             <!-- Optional -->
                             <onejarVersion>0.97</onejarVersion>
                             <!-- Optional, use only if you need to include native libraries (dll's)
