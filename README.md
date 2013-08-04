@@ -5,6 +5,17 @@ Installer to aid in freeboard setup tasks. It loads the arduinos, calibrates the
 Its a first cut, and probably going to have some problems. In particular its only tested in a basic way on my Linux dev systems, 
 so it may not work as well, or at all on Windows or Mac. If you can test for me that would be appreciated :-)
 
+  For charts, You will need gdal installed on you PC.
+  For linux:
+    'sudo apt-get install gdal-bin python-gdal imagemagick'
+
+  For windows:
+    Seems to be a difficult one :-(
+  I dont have a windows PC to test on but this link seems to be the best starting point
+    http://trac.osgeo.org/osgeo4w/wiki
+  You will probably need to mess with installing it, and email me for help with the details - sorry.
+ 
+
 Basic process is:
 
 1. Download and install the current Arduino IDE from http://http://arduino.cc/en/Main/Software. 
