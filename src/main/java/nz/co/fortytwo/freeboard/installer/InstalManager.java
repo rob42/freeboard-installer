@@ -76,7 +76,7 @@ public class InstalManager extends JFrame {
 	
 	private JTextField arduinoDirTextField = new JTextField(40);
 	
-	private StringBuffer rawBuffer= new StringBuffer();
+	
 	File toolsDir;
 	JComboBox<String> deviceComboBox;
 	HashMap<String, String> deviceMap = new HashMap<String, String>();
@@ -118,6 +118,9 @@ public class InstalManager extends JFrame {
 		this.addWidgets();
 		this.pack();
 		this.setVisible(true);
+		JOptionPane.showMessageDialog(this, "This utility is quite experimental, specifically I develop on Linux, and I dont have MS Windows \nto test on, so dont be surprised by errors!\n"+
+				"If you have problems, copy the output from the right side panel, along with a clear description \nof what you were doing, and email me at robert@42.co.nz"+
+				" so I can recreate and fix the error.");
 	}
 
 	private void addWidgets() {
@@ -130,9 +133,11 @@ public class InstalManager extends JFrame {
 		uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
 		final JPanel westUploadPanel = new JPanel(new MigLayout());
 		String info="\nUse this panel to upload compiled code to the arduino devices.\n\n" +
-				" These files are ended in '.hex'\n" +
-				"\nThe code can be downloaded from github (https://github.com/rob42),\n" +
-				" see the 'Release' sub-directories\n\n" +
+				"NOTE: directories with spaces will probably not work!\n\n"+
+				"First select the base directory of your Arduino IDE installation, eg C:/devtools/arduino-1.5.2\n\n"+
+				"Then select target files to upload, these are ended in '.hex'\n" +
+				"\nand can be downloaded from github (https://github.com/rob42),\n" +
+				" see the 'Release*' sub-directories\n\n" +
 				"Output of the process will display in the right-side window\n\n";
 		JTextArea jTextInfo = new JTextArea(info);
 		jTextInfo.setEditable(false);
@@ -151,7 +156,7 @@ public class InstalManager extends JFrame {
 						toolsDir=new File(arduinoIdeChooser.getSelectedFile(),"/hardware/tools/");
 						if(!toolsDir.exists()){
 							toolsDir=null;
-							JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Aduino IDE directory");
+							JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Arduino IDE directory");
 							return;
 						}
 						arduinoDirTextField.setText(arduinoIdeChooser.getSelectedFile().getAbsolutePath());
@@ -286,7 +291,9 @@ public class InstalManager extends JFrame {
 				@Override
 				public void run() {
 					String device = deviceMap.get(deviceComboBox.getSelectedItem());
-					uploadingPanel.process(f, (String) portComboBox.getSelectedItem(), device);
+					hexFileChooser.setEnabled(false);
+					uploadingPanel.process(f, (String) portComboBox.getSelectedItem(), device, toolsDir);
+					hexFileChooser.setEnabled(true);
 				}
 
 			}.start();
@@ -315,7 +322,9 @@ public class InstalManager extends JFrame {
 
 				@Override
 				public void run() {
+					chartFileChooser.setEnabled(false);
 					processingPanel.process(f);
+					chartFileChooser.setEnabled(true);
 				}
 
 			}.start();
@@ -326,275 +335,6 @@ public class InstalManager extends JFrame {
 			processingPanel.clear();
 			
 		}
-	}
-
-	class ProcessingPanel extends JPanel {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private JTextArea textArea = new JTextArea();
-		private JScrollPane scrollPane;
-
-		public ProcessingPanel() {
-			this.setPreferredSize(new Dimension(500, 700));
-			scrollPane = new JScrollPane(textArea);
-			scrollPane.setPreferredSize(new Dimension(480, 680));
-			textArea.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-			this.add(scrollPane);
-		}
-
-		public boolean process(File f) {
-			// one at a time
-			chartFileChooser.setEnabled(false);
-			System.out.println("Processing " + f.getAbsolutePath());
-			try {
-				ChartProcessor processor = new ChartProcessor(true, textArea);
-				redirectSystemStreams();
-				processor.processChart(f, true);
-
-			} catch (Exception e) {
-				System.out.print(e.getMessage() + "\n");
-				e.printStackTrace();
-				return false;
-			} finally {
-				chartFileChooser.setEnabled(true);
-			}
-			return true;
-		}
-
-		public void clear() {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.setText("");
-				}
-			});
-
-		}
-
-		private void updateTextArea(final String text) {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.append(text);
-				}
-			});
-		}
-
-		private void redirectSystemStreams() {
-			OutputStream out = new OutputStream() {
-				@Override
-				public void write(int b) throws IOException {
-					updateTextArea(String.valueOf((char) b));
-				}
-
-				@Override
-				public void write(byte[] b, int off, int len) throws IOException {
-					updateTextArea(new String(b, off, len));
-				}
-
-				@Override
-				public void write(byte[] b) throws IOException {
-					write(b, 0, b.length);
-				}
-			};
-
-			System.setOut(new PrintStream(out, true));
-			System.setErr(new PrintStream(out, true));
-		}
-
-	}
-
-	class LoadingPanel extends JPanel {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private JTextArea textArea = new JTextArea();
-		private JScrollPane scrollPane;
-
-		public LoadingPanel() {
-			this.setPreferredSize(new Dimension(500, 700));
-			scrollPane = new JScrollPane(textArea);
-			scrollPane.setPreferredSize(new Dimension(480, 680));
-			textArea.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-			this.add(scrollPane);
-		}
-
-		public boolean process(File f, String commPort, String device) {
-			// one at a time
-			chartFileChooser.setEnabled(false);
-			System.out.println("Processing " + f.getAbsolutePath());
-			try {
-				UploadProcessor processor = new UploadProcessor(true, textArea);
-				redirectSystemStreams();
-				System.out.println("Uploading "+f.getAbsolutePath()+" to "+device+" on "+commPort +", tools at"+toolsDir);
-				processor.processUpload(f, commPort, device, toolsDir.getAbsolutePath());
-
-			} catch (Exception e) {
-				System.out.print(e.getMessage() + "\n");
-				e.printStackTrace();
-				return false;
-			} finally {
-				chartFileChooser.setEnabled(true);
-			}
-			return true;
-		}
-
-		public void clear() {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.setText("");
-				}
-			});
-
-		}
-
-		private void updateTextArea(final String text) {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.append(text);
-				}
-			});
-		}
-
-		private void redirectSystemStreams() {
-			OutputStream out = new OutputStream() {
-				@Override
-				public void write(int b) throws IOException {
-					updateTextArea(String.valueOf((char) b));
-				}
-
-				@Override
-				public void write(byte[] b, int off, int len) throws IOException {
-					updateTextArea(new String(b, off, len));
-				}
-
-				@Override
-				public void write(byte[] b) throws IOException {
-					write(b, 0, b.length);
-				}
-			};
-
-			System.setOut(new PrintStream(out, true));
-			System.setErr(new PrintStream(out, true));
-		}
-
-	}
-
-	class CalibratePanel extends JPanel {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private JTextArea textArea = new JTextArea();
-		private JScrollPane scrollPane;
-		private CalibrateProcessor processor;
-		
-
-		public CalibratePanel() {
-			this.setPreferredSize(new Dimension(500, 700));
-			scrollPane = new JScrollPane(textArea);
-			scrollPane.setPreferredSize(new Dimension(480, 680));
-			textArea.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-			this.add(scrollPane);
-		}
-
-		public void stopProcess() {
-			if(processor!=null){
-				try {
-					System.out.print("Attempting to stop..\n");
-					processor.stopRawData();
-					//processor=null;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			if(rawBuffer.toString().length()<10){
-				System.out.println("Did not collect enough data, try again..\n"+rawBuffer.toString());
-				return;
-			}
-
-			int[] offsets = new int[6];
-			float[] scale = new float[6];
-			double [][] fullCompensation = processor.calculate(rawBuffer.toString());
-			offsets[0]=(int) fullCompensation[0][0];
-			offsets[1]=(int) fullCompensation[1][0];
-			offsets[2]=(int) fullCompensation[2][0];
-			offsets[3]=(int) fullCompensation[3][0];
-			offsets[4]=(int) fullCompensation[4][0];
-			offsets[5]=(int) fullCompensation[5][0];
-			scale[0]=(float) fullCompensation[0][1];
-			scale[1]=(float) fullCompensation[1][1];
-			scale[2]=(float) fullCompensation[2][1];
-			scale[3]=(float) fullCompensation[3][1];
-			scale[4]=(float) fullCompensation[4][1];
-			scale[5]=(float) fullCompensation[5][1];
-			//format for IMU
-			// (int16_t) acc_off_x, acc_off_y, acc_off_z, magn_off_x, magn_off_y, magn_off_z;
-			// (float) acc_scale_x, acc_scale_y, acc_scale_z, magn_scale_x, magn_scale_y, magn_scale_z;
-			processor.saveToDevice(offsets, scale);
-			
-		}
-
-		public boolean process(String commPortStr) {
-			// one at a time
-			//System.out.println("Processing " + f.getAbsolutePath());
-			try {
-				processor = new CalibrateProcessor(true, textArea);
-				redirectSystemStreams();
-				rawBuffer=new StringBuffer();
-				processor.connect(CommPortIdentifier.getPortIdentifier(commPortStr),rawBuffer);
-
-			} catch (Exception e) {
-				System.out.print(e.getMessage() + "\n");
-				e.printStackTrace();
-				return false;
-			} 
-			return true;
-		}
-
-		public void clear() {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.setText("");
-				}
-			});
-
-		}
-
-		private void updateTextArea(final String text) {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					textArea.append(text);
-				}
-			});
-		}
-
-		private void redirectSystemStreams() {
-			OutputStream out = new OutputStream() {
-				@Override
-				public void write(int b) throws IOException {
-					updateTextArea(String.valueOf((char) b));
-				}
-
-				@Override
-				public void write(byte[] b, int off, int len) throws IOException {
-					updateTextArea(new String(b, off, len));
-				}
-
-				@Override
-				public void write(byte[] b) throws IOException {
-					write(b, 0, b.length);
-				}
-			};
-
-			System.setOut(new PrintStream(out, true));
-			System.setErr(new PrintStream(out, true));
-		}
-
 	}
 
 	public static void main(String[] args) {
