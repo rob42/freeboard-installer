@@ -209,6 +209,7 @@ public class InstalManager extends JFrame {
 		chartPanel.setLayout(new BorderLayout());
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Charts", "tiff", "kap", "KAP", "TIFF", "tif", "TIF");
 		chartFileChooser.setFileFilter(filter);
+		chartFileChooser.setMultiSelectionEnabled(true);
 		JPanel chartWestPanel = new JPanel(new MigLayout());
 		String info2="\nUse this panel to convert charts into the correct format for FreeBoard.\n" +
 				"\nYou need to select the chart, then click 'Process'.\n " +
@@ -317,14 +318,20 @@ public class InstalManager extends JFrame {
 
 		@Override
 		public void approveSelection() {
-			final File f = chartFileChooser.getSelectedFile();
-
+			final File[] files = chartFileChooser.getSelectedFiles();
+			if(files==null || files.length==0){
+				JOptionPane.showMessageDialog(this, "No files selected!");
+				return;
+			}
 			new Thread() {
 
 				@Override
 				public void run() {
 					chartFileChooser.setEnabled(false);
-					processingPanel.process(f);
+					for(File f: files){
+						processingPanel.process(f);
+						//System.out.println("Processing "+f.getAbsolutePath());
+					}
 					chartFileChooser.setEnabled(true);
 				}
 
@@ -334,6 +341,7 @@ public class InstalManager extends JFrame {
 		@Override
 		public void cancelSelection() {
 			processingPanel.clear();
+			chartFileChooser.cancelSelection();
 			
 		}
 	}

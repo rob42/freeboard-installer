@@ -51,10 +51,11 @@ class ProcessingPanel extends JPanel {
 	public boolean process(File f) {
 		// one at a time
 		
-		System.out.println("Processing " + f.getAbsolutePath());
+		//System.out.println("Processing " + f.getAbsolutePath());
 		try {
 			ChartProcessor processor = new ChartProcessor(true, textArea);
 			redirectSystemStreams();
+			System.out.println("Processing " + f.getAbsolutePath());
 			processor.processChart(f, true);
 
 		} catch (Exception e) {
