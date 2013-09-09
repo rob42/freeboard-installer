@@ -56,13 +56,24 @@ class ForkWorker extends SwingWorker<String,String> {
       InputStream res = process.getInputStream();
       byte[] buffer = new byte[1];
       int len;
-      while ( (len=res.read(buffer,0,buffer.length))!=-1) {
+      while (true) {
+    	  len = res.read(buffer,0,buffer.length);
        // publish(new String(buffer,0,len));
-        System.out.print(new String(buffer,0,len));
+        if(len>0)System.out.print(new String(buffer,0,len));
         if (isCancelled()) {
           process.destroy();
           result=1;
           return "Cancelled";
+        }
+        //are we still running
+        try{
+        	process.exitValue();
+        	//get the last of the buffer out
+        	len = res.read(buffer,0,buffer.length);
+        	if(len>0)System.out.print(new String(buffer,0,len));
+        	break;
+        }catch(Exception e){
+        	//ignore, we are still running
         }
       }
       result=process.exitValue();

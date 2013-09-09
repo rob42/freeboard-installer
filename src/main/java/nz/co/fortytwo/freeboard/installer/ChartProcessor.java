@@ -83,11 +83,14 @@ public class ChartProcessor {
 					}
 					logger.error("No file at "+chartFile.getAbsolutePath());
 				}
-				//for WORLD.tif (Blue Marble) we need 
-				//'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -of vrt  WORLD.tif temp.vrt'
+				//for WORLD.tif (Natural Earth shape file) we need
+				//gdal_rasterize -of GTiff -co COMPRESS=DEFLATE -co PREDICTOR=2 -co ZLEVEL=9   -ot Byte  -a_nodata 255 -tr .1 .1 -burn 255 -burn 0 -burn 0  ne_10m_coastline.shp ./WORLD.tif
+				//gdal_rasterize -of GTiff -co COMPRESS=DEFLATE -co PREDICTOR=2 -co ZLEVEL=9   -ot Byte  -a_nodata 255 -tr .01 .01 -burn 255 -burn 0 -burn 0  ne_10m_coastline.shp ./WORLD1.tif
+				// v1.7 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -if","GTiff -of vrt  WORLD.tif temp.vrt'
+				// v1.9 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -of vrt  WORLD.tif temp.vrt'
 				//to add Georef info
-				if(chartFile.getName().toUpperCase().equals("WORLD.TIF")){
-					processWorldChart(chartFile,reTile);
+				if(chartFile.getName().toUpperCase().startsWith("WORLD")){					
+					processWorldChart(chartFile,reTile,"Natural Earth");
 				}else
 				//we have a KAP file
 				if(chartFile.getName().toUpperCase().endsWith("KAP")){
@@ -97,7 +100,7 @@ public class ChartProcessor {
 				}
 				
 	}
-	private void processWorldChart(File chartFile, boolean reTile) throws Exception {
+	private void processWorldChart(File chartFile, boolean reTile, String attribution) throws Exception {
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
 		File dir = new File(chartFile.getParentFile(),chartName);
@@ -107,20 +110,29 @@ public class ChartProcessor {
 		}
 		logger.debug("Chart tag:"+chartName);
 		logger.debug("Chart dir:"+dir.getPath());
+		String scales = "0-2";
+		int min = 0;
+		int max = 2;
+		if("WORLD1".equals(chartName)){
+			scales = "3-6";
+			min=3;
+			max=6;
+		}
 		//start by running the gdal script
 		if(reTile){
+			
 			executeGdal(chartFile, chartName,
-					Arrays.asList("gdal_translate", "-co","COMPRESS=PACKBITS", "-a_ullr","-180.0","90.0","180.0","-90.0","-a_srs","\"EPSG:4326\"", "-if","GTiff", "-of", "vrt", chartFile.getName(),"temp.vrt"),
-					Arrays.asList("gdal2tiles.py", "-z", "0-6", "temp.vrt", chartName));
+					//v1.7 Arrays.asList("gdal_translate", "-co","COMPRESS=PACKBITS", "-a_ullr","-180.0","90.0","180.0","-90.0","-a_srs","\"EPSG:4326\"", "-if","GTiff", "-of", "vrt", chartFile.getName(),"temp.vrt"),
+					Arrays.asList("gdal_translate", "-co","COMPRESS=PACKBITS", "-a_ullr","-180","83.6431","180.0","-85.2659", "-of", "vrt", chartFile.getName(),"temp.vrt"),
+					Arrays.asList("gdal2tiles.py", "-z", scales, "temp.vrt", chartName));
 		}
 		//write out freeboard.txt
-
-		String text = "\n\tvar WORLD = L.tileLayer(\"http://{s}.{server}:8080/mapcache/WORLD/{z}/{x}/{y}.png\", {\n"+
+		String text = "\n\tvar "+chartName+" = L.tileLayer(\"http://{s}.{server}:8080/mapcache/"+chartName+"/{z}/{x}/{y}.png\", {\n"+
     			"\t\tserver: host,\n"+
     			"\t\tsubdomains: 'abcd',\n"+
-    			"\t\tattribution: 'Blue Marble',\n"+
-    			"\t\tminZoom: 0,\n"+
-    			"\t\tmaxZoom: 7,\n"+
+    			"\t\tattribution: '"+attribution+"',\n"+
+    			"\t\tminZoom: "+min+",\n"+
+    			"\t\tmaxZoom: "+max+",\n"+
     			"\t\ttms: true\n"+
     			"\t\t}).addTo(map);\n";
 		if(manager){
@@ -129,7 +141,7 @@ public class ChartProcessor {
 		File layers = new File(dir,"freeboard.txt");
         FileUtils.writeStringToFile(layers, text);
         System.out.print("Zipping directory...\n");
-		//ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
+		ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
 		System.out.print("Zipping directory complete\n");
 	}
 
@@ -271,7 +283,7 @@ public class ChartProcessor {
 		//gdal2tiles.py temp.vrt $1
 		 File tileDir = new File(mapCacheDir,chartName);
 		 tileDir.mkdir();
-		 pb = new ProcessBuilder("gdal2tiles.py", "temp.vrt", chartName);
+		 pb = new ProcessBuilder(tilesList);
 		 pb.directory(mapCacheDir);
 		 //pb.inheritIO();
 		 if(manager){

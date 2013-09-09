@@ -154,7 +154,8 @@ public class InstalManager extends JFrame {
 			
 			public void actionPerformed(ActionEvent evt) {
 				if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
-						toolsDir=new File(arduinoIdeChooser.getSelectedFile(),"/hardware/tools/");
+					
+						toolsDir=new File(arduinoIdeChooser.getSelectedFile(), File.separator+"hardware"+File.separator+"tools"+File.separator);
 						if(!toolsDir.exists()){
 							toolsDir=null;
 							JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Arduino IDE directory");
