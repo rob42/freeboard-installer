@@ -89,8 +89,8 @@ public class UploadProcessor {
 			if(device.equals("atmega328p")){
 				avrType=":i";
 			}
-		executeAvrdude(hexFile, Arrays.asList(dudeDir + "/" + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-v", "-v", "-v",
-				"-Uflash:w:"+hexFile.getName()+avrType, "-C" + dudeDir + "/avrdude.conf"));
+		executeAvrdude(hexFile, Arrays.asList(dudeDir + File.separator + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-v", "-v", "-v",
+				"-Uflash:w:"+hexFile.getName()+avrType, "-C" + dudeDir + File.separator+"avrdude.conf"));
 
 	}
 
