@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.swing.JTextArea;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -78,7 +79,9 @@ public class UploadProcessor {
 
 		logger.debug("Uploading hex file:" + hexFile.getPath());
 		// start by running avrdude
-		//ArduIMU
+		//bayeans on eclipse windows
+		//C:\Program Files\Arduino\hardware\tools\avr\bin\avrdude -patmega2560 -cwiring "-P\\.\COM6" -b115200 -Uflash:w:FreeBoardPLC.hex:a "-CC:\Program Files\Arduino\hardware\tools\avr\etc\avrdude.conf" 
+		//ArduIMU - linux
 		//tools/avrdude -patmega328p -carduino -P/dev/ttyUSB0 -b57600 -D -q -q -v -v -v -v -Uflash:w:FreeBoardIMU.cpp.hex:i -C$ARDUINO_HOME/hardware/tools/avrdude.conf
 		
 		//tools/avrdude -patmega1280 -carduino -P/dev/ttyUSB0 -b57600 -D -v -v -v -v -Uflash:w:FreeBoardPLC.hex:a -C$ARDUINO_HOME/hardware/tools/avrdude.conf
@@ -89,8 +92,19 @@ public class UploadProcessor {
 			if(device.equals("atmega328p")){
 				avrType=":i";
 			}
-		executeAvrdude(hexFile, Arrays.asList(dudeDir + File.separator + avrdude, pDevice, "-carduino", "-P" + commPort, "-b57600", "-D", "-v", "-v", "-v",
-				"-Uflash:w:"+hexFile.getName()+avrType, "-C" + dudeDir + File.separator+"avrdude.conf"));
+			String executable = dudeDir + File.separator + avrdude;
+			String conf = "-C" + dudeDir + File.separator+"avrdude.conf";
+			
+			if(SystemUtils.IS_OS_WINDOWS){
+				executable="\""+executable+"\"";
+				conf="\""+conf+"\"";
+				//we need "-P\\.\COM6"
+				commPort="\"-P\\\\.\\"+commPort+"\"";
+			}else{
+				commPort="-P"+commPort;
+			}
+		executeAvrdude(hexFile, Arrays.asList(executable, pDevice, "-carduino", commPort, "-b57600", "-D", "-v", "-v", "-v",
+				"-Uflash:w:"+hexFile.getName()+avrType, conf));
 
 	}
 
