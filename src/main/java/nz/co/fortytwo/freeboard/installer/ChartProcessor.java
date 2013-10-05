@@ -31,7 +31,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import javax.imageio.ImageIO;
 import javax.swing.JTextArea;
@@ -39,7 +38,7 @@ import javax.swing.JTextArea;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dom4j.Attribute; 
+import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -206,7 +205,8 @@ public class ChartProcessor {
         logger.debug("Box:"+minx+","+miny+","+maxx+","+maxy);
 
         //we need TileSets, each tileset has an href, we need first and last for zooms
-        List<Attribute> list = document.selectNodes( "//TileSets/TileSet/@href" );
+        @SuppressWarnings("unchecked")
+		List<Attribute> list = document.selectNodes( "//TileSets/TileSet/@href" );
         int minZoom = 18;
         int maxZoom = 0;
         for (Attribute attribute : list){
@@ -254,6 +254,7 @@ public class ChartProcessor {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
+	@SuppressWarnings("static-access")
 	private void executeGdal( File chartFile, String chartName, List<String> argList, List<String> tilesList ) throws IOException, InterruptedException {
 		//mkdir $1
 		//gdal_translate -of vrt -expand rgba $1.kap temp.vrt

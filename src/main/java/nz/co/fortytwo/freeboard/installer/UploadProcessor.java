@@ -119,6 +119,7 @@ public class UploadProcessor {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
+	@SuppressWarnings("static-access")
 	private void executeAvrdude(File hexFile, List<String> argList) throws IOException, InterruptedException {
 
 		ProcessBuilder pb = new ProcessBuilder(argList);
