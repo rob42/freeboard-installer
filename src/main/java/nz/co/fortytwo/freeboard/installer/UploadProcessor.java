@@ -104,7 +104,7 @@ public class UploadProcessor {
 				logger.debug("We are on a Mac :-)");
 				logger.debug("Ignoring selected arduino directory, using \"/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr\" instead");
 				executable="/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/avrdude";
-				conf="/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/etc/avrdude.conf";
+				conf="-C/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/etc/avrdude.conf";
 			}
 			if(SystemUtils.IS_OS_WINDOWS){
 				//wrap in "" for the stupid windoze spaces in filenames
