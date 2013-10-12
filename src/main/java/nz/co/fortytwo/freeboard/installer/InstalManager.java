@@ -44,6 +44,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import net.miginfocom.swing.MigLayout;
 import purejavacomm.CommPortIdentifier;
 
@@ -74,7 +76,7 @@ public class InstalManager extends JFrame {
 
 	public InstalManager(String name) {
 		super(name);
-
+		
 		String[] devices = new String[] { "ArduIMU v3", "Arduino Mega 1280", "Arduino Mega 2560" };
 		deviceMap.put(devices[0], "atmega328p");
 		deviceMap.put(devices[1], "atmega1280");
@@ -91,6 +93,7 @@ public class InstalManager extends JFrame {
 		while (commPorts.hasMoreElements()) {
 			CommPortIdentifier commPort = commPorts.nextElement();
 			if (commPort.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+				//?if(SystemUtils.IS_LINUX())
 				if (commPort.getName().startsWith("tty")) {
 					// linux
 					commModel.add("/dev/" + commPort.getName());
@@ -122,6 +125,7 @@ public class InstalManager extends JFrame {
 		uploadPanel.setLayout(new BorderLayout());
 		uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
 		final JPanel westUploadPanel = new JPanel(new MigLayout());
+		
 		String info="\nUse this panel to upload compiled code to the arduino devices.\n\n" +
 				"NOTE: directories with spaces will probably not work!\n\n"+
 				"First select the base directory of your Arduino IDE installation, eg C:/devtools/arduino-1.5.2\n\n"+

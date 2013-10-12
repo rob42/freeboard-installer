@@ -95,7 +95,16 @@ public class UploadProcessor {
 			String executable = dudeDir + File.separator + avrdude;
 			String conf = "-C" + dudeDir + File.separator+"avrdude.conf";
 			
+			if(SystemUtils.IS_OS_MAC_OSX){
+				/*
+				 I managed to program the atmega2560 on OSX using avrdude from the Arduino files with this string:
+					/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/avrdude -C/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/etc/avrdude.conf -v -v -v -v -patmega2560 -cwiring -P/dev/tty.usbmodem1d21 -b115200 -D -Uflash:w:/Users/freddie/Desktop/Arduino_Sensors_Stuff/Freeboard_System/freeboardPLC-master/Release2560/FreeBoardPLC.hex:i 
+				 */
+				//on osx /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/avrdude
+				executable=dudeDir+"/hardware/tools/avr/bin/avrdude";
+			}
 			if(SystemUtils.IS_OS_WINDOWS){
+				//wrap in "" for the stupid windoze spaces in filenames
 				executable="\""+executable+"\"";
 				conf="\""+conf+"\"";
 				//we need "-P\\.\COM6"
