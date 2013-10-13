@@ -94,7 +94,8 @@ public class UploadProcessor {
 			}
 			String executable = dudeDir + File.separator + avrdude;
 			String conf = "-C" + dudeDir + File.separator+"avrdude.conf";
-			
+			String baudRate = "-b57600";
+			String programmer = "-carduino";
 			if(SystemUtils.IS_OS_MAC_OSX){
 				/*
 				 I managed to program the atmega2560 on OSX using avrdude from the Arduino files with this string:
@@ -105,6 +106,8 @@ public class UploadProcessor {
 				logger.debug("Ignoring selected arduino directory, using \"/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr\" instead");
 				executable="/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/avrdude";
 				conf="-C/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/etc/avrdude.conf";
+				baudRate = "-b115200";
+				programmer = "-cwiring";
 			}
 			if(SystemUtils.IS_OS_WINDOWS){
 				//wrap in "" for the stupid windoze spaces in filenames
@@ -115,7 +118,7 @@ public class UploadProcessor {
 			}else{
 				commPort="-P"+commPort;
 			}
-		executeAvrdude(hexFile, Arrays.asList(executable, pDevice, "-carduino", commPort, "-b57600", "-D", "-v", "-v", "-v",
+		executeAvrdude(hexFile, Arrays.asList(executable, pDevice, programmer, commPort, baudRate , "-D", "-v", "-v", "-v",
 				"-Uflash:w:"+hexFile.getName()+avrType, conf));
 
 	}
