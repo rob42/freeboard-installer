@@ -44,8 +44,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.apache.commons.lang3.SystemUtils;
-
 import net.miginfocom.swing.MigLayout;
 import purejavacomm.CommPortIdentifier;
 

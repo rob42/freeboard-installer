@@ -168,6 +168,7 @@ public class ChartProcessor {
 					//this for US NOAA charts
 					Arrays.asList("gdal_translate", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
 					Arrays.asList("gdal2tiles.py", "temp.vrt", chartName));
+//TODO: In Win8 we need full path - Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
 		}
 		//now get the Chart Name from the kap file
 		FileReader fileReader = new FileReader(chartFile);
@@ -218,8 +219,9 @@ public class ChartProcessor {
 			System.out.print("Zoom:"+minZoom+"-"+maxZoom+"\n");
 		}
         logger.debug("Zoom:"+minZoom+"-"+maxZoom);
-        
-        String snippet = "\n\tvar "+chartName+" = L.tileLayer(\"http://{s}.{server}:8080/mapcache/"+chartName+"/{z}/{x}/{y}.png\", {\n"+
+        //cant have - in js var name
+        String chartNameJs = chartName.replaceAll("^[^a-zA-Z_$]|[^\\w$]","_");
+        String snippet = "\n\tvar "+chartNameJs+" = L.tileLayer(\"http://{s}.{server}:8080/mapcache/"+chartName+"/{z}/{x}/{y}.png\", {\n"+
         			"\t\tserver: host,\n"+
         			"\t\tsubdomains: 'abcd',\n"+
         			"\t\tattribution: '"+chartName+" "+desc+"',\n"+
