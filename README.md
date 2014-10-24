@@ -1,12 +1,9 @@
-#Freeboard Installer
+##Freeboard Installer
 
-Installer to aid in freeboard setup tasks. It loads the arduinos, calibrates the IMU, and converts charts.
-
-Its a first cut, and probably going to have some problems. In particular its only tested in a basic way on my Linux dev systems, 
-so it may not work as well, or at all on Windows or Mac. If you can test for me that would be appreciated :-)
+ Installer to aid in freeboard setup tasks. It loads the arduinos, calibrates the IMU, and converts charts.
 
 
-##Basic installation process is:
+###Basic installation process is:
 
  Download and install the current Arduino IDE from http://http://arduino.cc/en/Main/Software. 
   
@@ -14,7 +11,7 @@ so it may not work as well, or at all on Windows or Mac. If you can test for me 
 
  Download the freeboard-installer.jar (above) into a suitable directory
 
-##To install software onto your Arduino:
+###To install software onto your Arduino:
 
  Download the HEX files for your Arduino Mega (https://github.com/rob42/freeboardPLC/blob/master/Release1280/FreeBoardPLC.hex for Mega 1280, 
  https://github.com/rob42/freeboardPLC/blob/master/Release2560/FreeBoardPLC.hex for 2560)
@@ -31,7 +28,7 @@ so it may not work as well, or at all on Windows or Mac. If you can test for me 
  Follow the notes on each tab
 
 
-##For charts, You will need gdal installed on you PC.
+###For charts, You will need gdal installed on you PC.
 
   For linux:
     
