@@ -9,12 +9,39 @@ so it may not work as well, or at all on Windows or Mac. If you can test for me 
   For linux:
     'sudo apt-get install gdal-bin python-gdal imagemagick'
 
-  For windows:
-    Seems to be a difficult one :-(
-  I dont have a windows PC to test on but this link seems to be the best starting point
-    http://trac.osgeo.org/osgeo4w/wiki
-  You will probably need to mess with installing it, and email me for help with the details - sorry.
- 
+  For windows 64 bit, courtesy of Matthias:
+
+	Download and install python
+	Tested with python 3.4.2 from https://www.python.org/downloads/release/python-342/
+	Download and install OSGeo4W from http://download.osgeo.org/osgeo4w/osgeo4w-setup.exe
+	 
+	From here, installation for linux and Win8 is similar
+
+	Start the freeboard-installer:
+	* You may be able to double-click the jar file
+	OR
+	* from the command line: "java -jar freeboard-installer.jar"   
+
+  Go to the chart tab, select you .kap chart file, and process.
+	The right-hand window will show the progress and a directory will be created with the mapping tiles etc. There is a zip file of this directory also created which will be moved to the RaspberryPi.
+	
+	You can go to the newly created directory and open the 'openlayers.html' file in a web browser. You should be able to see you newly created chart, but you may have to zoom in to the correct area if its a small chart.
+	
+  Copy the yourMap zip file to your raspberry pi, and unzip in the same mapcache directory, so the result is:
+
+    /home/pi/freeboard/mapcache/NZ46/...
+
+  Restart freeboard to use the new chart.
+
+  Your chart should be available in the chart list (top-right button of chartplotter)
+  Select the 'Charts' tab and move you charts to the right-hand box.
+  
+  IMPORTANT: Select "Home" if your Pi is connected to your home network, and 'Boat' if your pi is running on a stand-alone network, eg in your boat.
+
+	Save, and reload/refresh you browser page
+  If you see the 'Processing' message forever..., then you need to choose 'Home'. ('Boat' is much faster but has DNS issues on home networks.)
+
+  
 
 Basic process is:
 
