@@ -13,8 +13,8 @@
 
 ###To install software onto your Arduino:
 
- Download the HEX files for your Arduino Mega (https://github.com/rob42/freeboardPLC/blob/master/Release1280/FreeBoardPLC.hex for Mega 1280, 
- https://github.com/rob42/freeboardPLC/blob/master/Release2560/FreeBoardPLC.hex for 2560)
+ Download the HEX files for your Arduino Mega (https://github.com/rob42/FreeboardMega/blob/master/Release1280/FreeboardMega.hex for Mega 1280, 
+ https://github.com/rob42/FreeboardMega/blob/master/Release2560/FreeboardMega.hex for 2560)
  
  Download the ArduIMU hex file (https://github.com/rob42/FreeIMU-20121106_1323/blob/master/FreeBoardIMU/target/FreeBoardIMU.cpp.hex)
 
