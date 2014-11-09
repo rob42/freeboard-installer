@@ -29,6 +29,7 @@ import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import javax.swing.JTextArea;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -161,14 +163,24 @@ public class ChartProcessor {
 		logger.debug("Chart tag:"+chartName);
 		logger.debug("Chart dir:"+dir.getPath());
 		//start by running the gdal scripts
+		URL gdalUrl = getClass().getClassLoader().getResource("gdalToTiles.py");
+		logger.debug(gdalUrl.getPath());
+		
+		List<String> arrays =  Arrays.asList("python",gdalUrl.getPath(),"temp.vrt", chartName);
+		
+		if(SystemUtils.IS_OS_WINDOWS){
+			arrays = Arrays.asList("python.exe","gdalToTiles.py","temp.vrt", chartName);
+			//TODO: In Win8 we need full path - Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
+		}
+		
 		if(reTile){
 			executeGdal(chartFile, chartName, 
 					//this was for NZ KAP charts
 					//Arrays.asList("gdal_translate", "-if","GTiff", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
 					//this for US NOAA charts
 					Arrays.asList("gdal_translate", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
-					Arrays.asList("gdal2tiles.py", "temp.vrt", chartName));
-//TODO: In Win8 we need full path - Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
+					//Arrays.asList("gdal2tiles.py", "temp.vrt", chartName));
+					arrays);
 		}
 		//now get the Chart Name from the kap file
 		FileReader fileReader = new FileReader(chartFile);
