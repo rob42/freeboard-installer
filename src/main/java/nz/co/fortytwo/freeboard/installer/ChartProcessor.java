@@ -37,6 +37,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JTextArea;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
@@ -60,6 +61,7 @@ public class ChartProcessor {
 	private JTextArea textArea;
 	private ImageFilter filter = new TransparentImageFilter();
 	private File mapCacheDir;
+	private String pythonExec;
 	
 	public ChartProcessor() throws Exception {
 		//config=Util.getConfig(null);
@@ -165,11 +167,15 @@ public class ChartProcessor {
 		//start by running the gdal scripts
 		URL gdalUrl = getClass().getClassLoader().getResource("gdalToTiles.py");
 		logger.debug(gdalUrl.getPath());
-		
-		List<String> arrays =  Arrays.asList("python",gdalUrl.getPath(),"temp.vrt", chartName);
+		//copy out to known location
+		File gdalToTiles = new File("gdalToTiles.py");
+		String gdalObj = IOUtils.toString(gdalUrl.openStream());
+		logger.debug(gdalObj);
+		FileUtils.writeStringToFile(gdalToTiles, gdalObj.toString());
+		List<String> arrays =  Arrays.asList(pythonExec,gdalToTiles.getAbsolutePath(),"temp.vrt", chartName);
 		
 		if(SystemUtils.IS_OS_WINDOWS){
-			arrays = Arrays.asList("python.exe","gdalToTiles.py","temp.vrt", chartName);
+			arrays = Arrays.asList(pythonExec,gdalToTiles.getAbsolutePath(),"temp.vrt", chartName);
 			//TODO: In Win8 we need full path - Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
 		}
 		
@@ -407,6 +413,12 @@ public class ChartProcessor {
 		//we have a file
 		ChartProcessor chartProcessor = new ChartProcessor();
 		chartProcessor.processChart(chartFile,reTile);
+	}
+	public String getPythonExec() {
+		return pythonExec;
+	}
+	public void setPythonExec(String pythonExec) {
+		this.pythonExec = pythonExec;
 	}
 
 	

@@ -1497,7 +1497,7 @@ gdal2tiles temp.vrt""" % self.input )
         args['profile'] = self.options.profile
 
         if self.options.profile == 'mercator':
-            args['srs'] = "EPSG:900913"
+            args['srs'] = "EPSG:3785"
         elif self.options.profile == 'geodetic':
             args['srs'] = "EPSG:4326"
         elif self.options.s_srs:
@@ -2000,47 +2000,7 @@ gdal2tiles temp.vrt""" % self.input )
                   };
                   map = new OpenLayers.Map(options);
 
-                  // Create Google Mercator layers
-                  var gmap = new OpenLayers.Layer.Google("Google Streets",
-                  {
-                      type: google.maps.MapTypeId.ROADMAP,
-                      sphericalMercator: true
-                  });
-                  var gsat = new OpenLayers.Layer.Google("Google Satellite",
-                  {
-                      type: google.maps.MapTypeId.SATELLITE,
-                      sphericalMercator: true
-                  });
-                  var ghyb = new OpenLayers.Layer.Google("Google Hybrid",
-                  {
-                      type: google.maps.MapTypeId.HYBRID,
-                      sphericalMercator: true
-                  });
-                  var gter = new OpenLayers.Layer.Google("Google Terrain",
-                  {
-                      type: google.maps.MapTypeId.TERRAIN,
-                      sphericalMercator: true
-                  });
-
-                  // Create Bing layers
-                  var broad = new OpenLayers.Layer.Bing({
-                      name: "Bing Roads",
-                      key: "%(bingkey)s",
-                      type: "Road",
-                      sphericalMercator: true
-                  });
-                  var baer = new OpenLayers.Layer.Bing({
-                      name: "Bing Aerial",
-                      key: "%(bingkey)s",
-                      type: "Aerial",
-                      sphericalMercator: true
-                  });
-                  var bhyb = new OpenLayers.Layer.Bing({
-                      name: "Bing Hybrid",
-                      key: "%(bingkey)s",
-                      type: "AerialWithLabels",
-                      sphericalMercator: true
-                  });
+                
 
                   // Create OSM layer
                   var osm = new OpenLayers.Layer.OSM("OpenStreetMap");
