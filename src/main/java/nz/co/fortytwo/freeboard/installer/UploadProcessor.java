@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.swing.JTextArea;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
@@ -111,6 +112,23 @@ public class UploadProcessor {
 			}
 			if(SystemUtils.IS_OS_WINDOWS){
 				//wrap in "" for the stupid windoze spaces in filenames
+				//check they exist
+				if(!new File(executable).exists()){
+					logger.debug("Cant find avrdude executable at : "+executable+", trying in avr/bin");
+					//lets try avr/bin
+					executable = dudeDir + File.separator +"avr"+ File.separator+"bin"+ File.separator+ avrdude;
+					if(!new File(executable).exists()){
+						logger.debug("Cant find avrdude executable at :"+executable);
+					}
+				}
+				if(!new File(conf).exists()){
+					logger.debug("Cant find avrdude.conf at : "+conf+", trying in avr/etc");
+					//lets try avr/bin
+					conf = "-C" + dudeDir + File.separator +"avr"+ File.separator+"etc"+File.separator+"avrdude.conf";
+					if(!new File(executable).exists()){
+						logger.debug("Cant find avrdude.conf at :"+executable);
+					}
+				}
 				executable="\""+executable+"\"";
 				conf="\""+conf+"\"";
 				//we need "-P\\.\COM6"
