@@ -97,6 +97,10 @@ public class UploadProcessor {
 			String conf = "-C" + dudeDir + File.separator+"avrdude.conf";
 			String baudRate = "-b57600";
 			String programmer = "-carduino";
+			//change for mega 2560
+			if(device.equals("atmega2560")){
+				programmer = "-cwiring";
+			}
 			if(SystemUtils.IS_OS_MAC_OSX){
 				/*
 				 I managed to program the atmega2560 on OSX using avrdude from the Arduino files with this string:
