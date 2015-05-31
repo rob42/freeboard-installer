@@ -135,8 +135,9 @@ public class UploadProcessor {
 				}
 				executable="\""+executable+"\"";
 				conf="\""+conf+"\"";
-				//we need "-P\\.\COM6"
-				commPort="\"-P\\\\.\\"+commPort+"\"";
+				//we need "-P\\.\COM6", or "-PCOM6"
+				//commPort="\"-P\\\\.\\"+commPort+"\"";
+				commPort="\"-P"+commPort+"\"";
 			}else{
 				commPort="-P"+commPort;
 			}

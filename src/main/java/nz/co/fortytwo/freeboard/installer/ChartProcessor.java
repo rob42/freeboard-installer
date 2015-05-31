@@ -123,7 +123,9 @@ public class ChartProcessor {
 		}
 		//start by running the gdal script
 		if(reTile){
-			
+			//win8.1 may need full paths
+			//Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
+
 			executeGdal(chartFile, chartName,
 					//v1.7 Arrays.asList("gdal_translate", "-co","COMPRESS=PACKBITS", "-a_ullr","-180.0","90.0","180.0","-90.0","-a_srs","\"EPSG:4326\"", "-if","GTiff", "-of", "vrt", chartFile.getName(),"temp.vrt"),
 					Arrays.asList("gdal_translate", "-co","COMPRESS=PACKBITS", "-a_ullr","-180","83.6431","180.0","-85.2659", "-of", "vrt", chartFile.getName(),"temp.vrt"),
@@ -155,6 +157,7 @@ public class ChartProcessor {
 	 * @throws Exception
 	 */
 	public void processKapChart(File chartFile, boolean reTile) throws Exception {
+		String chartPath = chartFile.getParentFile().getAbsolutePath();
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
 		File dir = new File(chartFile.getParentFile(),chartName);
@@ -168,21 +171,27 @@ public class ChartProcessor {
 		URL gdalUrl = getClass().getClassLoader().getResource("gdalToTiles.py");
 		logger.debug(gdalUrl.getPath());
 		//copy out to known location
-		File gdalToTiles = new File("gdalToTiles.py");
-		String gdalObj = IOUtils.toString(gdalUrl.openStream());
-		logger.debug(gdalObj);
-		FileUtils.writeStringToFile(gdalToTiles, gdalObj.toString());
-		List<String> arrays =  Arrays.asList(pythonExec,gdalToTiles.getAbsolutePath(),"temp.vrt", chartName);
-		
+		//File gdalToTiles = new File("gdalToTiles.py");
+		//String gdalObj = IOUtils.toString(gdalUrl.openStream());
+		//logger.debug(gdalObj);
+		//FileUtils.writeStringToFile(gdalToTiles, gdalObj.toString());
+		List<String> arrays =  Arrays.asList(pythonExec,"gdal2tiles.py","temp.vrt", chartName);
+		if(SystemUtils.IS_OS_LINUX){
+			arrays =  Arrays.asList("gdal2tiles.py","temp.vrt", chartName);
+		}
 		if(SystemUtils.IS_OS_WINDOWS){
-			arrays = Arrays.asList(pythonExec,gdalToTiles.getAbsolutePath(),"temp.vrt", chartName);
-			//TODO: In Win8 we need full path - Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", pathName +"\\" +"temp.vrt", pathName +"\\" + chartName));
+			arrays = Arrays.asList(pythonExec,"C:\\Program Files (x86)\\GDAL\\gdal2tiles.py","temp.vrt", chartName);
+			if(SystemUtils.IS_OS_WINDOWS_8){
+			//In Win8 we need full path - assumes  python 3.3
+				Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", chartPath +File.separator +"temp.vrt", chartPath +File.separator + chartName);
+			}
 		}
 		
 		if(reTile){
 			executeGdal(chartFile, chartName, 
 					//this was for NZ KAP charts
 					//Arrays.asList("gdal_translate", "-if","GTiff", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
+			
 					//this for US NOAA charts
 					Arrays.asList("gdal_translate", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
 					//Arrays.asList("gdal2tiles.py", "temp.vrt", chartName));
