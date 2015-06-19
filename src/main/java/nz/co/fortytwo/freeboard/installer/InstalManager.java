@@ -23,8 +23,10 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -46,6 +48,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.lang3.SystemUtils;
 
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import purejavacomm.CommPortIdentifier;
 
 /**
@@ -195,19 +201,20 @@ public class InstalManager extends JFrame {
         uploadPanel.add(westUploadPanel, BorderLayout.WEST);
         tabPane.addTab("Upload", uploadPanel);
 
-        // charts - single directory
+        // charts
         JPanel chartPanel = new JPanel();
         chartPanel.setLayout(new BorderLayout());
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Charts", "tiff", "kap", "KAP", "TIFF", "tif", "TIF");
         chartFileChooser.setFileFilter(filter);
+        chartFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chartFileChooser.setMultiSelectionEnabled(true);
         final JPanel chartWestPanel = new JPanel(new MigLayout());
         String info2 = "\nUse this panel to convert charts into the correct format for FreeBoard.\n"
-                + "\nYou need to select the chart, then click 'Process'.\n "
-                + "\nThe results will be in a directory with the same name as the chart, \n"
-                + "and the chart directory will also be compressed \n"
-                + "into a zip file ready to transfer to your FreeBoard server\n\n"
-                + "Output of the process will display in the right-side window\n\n";
+                + "\nYou need to select the charts or directories containing charts, then click 'Process'.\n "
+                + "\nThe results will be in a directory with the same name as the chart, and the chart "
+                + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard \n\n"
+                + "\nserver\n"
+                + "\nOutput of the process will display in the right-side window\n\n";
         JTextArea jTextInfo2 = new JTextArea(info2);
         jTextInfo2.setEditable(false);
         chartWestPanel.add(jTextInfo2, "wrap");
@@ -241,7 +248,6 @@ public class InstalManager extends JFrame {
         chartWestPanel.add(chartFileChooser, "span,wrap");
         chartPanel.add(chartWestPanel, BorderLayout.WEST);
         chartPanel.add(processingPanel, BorderLayout.CENTER);
-
         tabPane.addTab("Charts", chartPanel);
 
         // IMU calibration
@@ -328,18 +334,34 @@ public class InstalManager extends JFrame {
 
         @Override
         public void approveSelection() {
-            final File[] files = chartFileChooser.getSelectedFiles();
-            if (files == null || files.length == 0) {
+            final File[] filesDirs = chartFileChooser.getSelectedFiles();
+            if (filesDirs == null || filesDirs.length == 0) {
                 JOptionPane.showMessageDialog(this, "No files selected!");
                 return;
             }
             new Thread() {
-                @Override
+                String[] SUFFIX = {"kap", "KAP", "jpg", "jpeg", "JPG", "JPEG"};
+
                 public void run() {
+                    IOFileFilter filter = new SuffixFileFilter(SUFFIX);
                     chartFileChooser.setEnabled(false);
+                    Collection<File> files = new java.util.LinkedList<File>();
+
+                    // If the selection includes a chart file or files, they will be added to the List files
+                    // If the selection contains directories with charts, the directory tree will be searched
+                    // recursively to find all of the chart files and they will be add to the List files
+                    for (File d : filesDirs) {
+                        if (d.isFile()) {
+                            files.add(d);
+                        } else {
+                            files.addAll((List<File>) (org.apache.commons.io.FileUtils.listFiles(d, filter, TrueFileFilter.INSTANCE)));
+                        }
+                    }
+
+                    // Process the files
                     for (File f : files) {
-                        processingPanel.process(f, pythonTextField.getText());
-                        //System.out.println("Processing "+f.getAbsolutePath());
+                        //processingPanel.process(f, pythonTextField.getText());
+                        System.out.println("Processing " + f.getAbsolutePath());
                     }
                     chartFileChooser.setEnabled(true);
                 }
