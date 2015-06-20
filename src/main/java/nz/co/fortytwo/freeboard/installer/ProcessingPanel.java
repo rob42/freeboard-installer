@@ -63,10 +63,10 @@ class ProcessingPanel extends JPanel {
 		} catch (Exception e) {
 			System.out.print(e.getMessage() + "\n");
 			e.printStackTrace();
-			System.out.println(String.format("Elapsed time: %7.2f minutes", ((double)(System.currentTimeMillis() - start))/60000));
+			System.out.println(String.format("Elapsed time: %7.2f minutes\n", ((double)(System.currentTimeMillis() - start))/60000));
                         return false;
 		}
-                System.out.println(String.format("Elapsed time: %7.2f minutes", ((double)(System.currentTimeMillis() - start))/60000));
+                System.out.println(String.format("Elapsed time: %7.2f minutes\n", ((double)(System.currentTimeMillis() - start))/60000));
 		return true;
 	}
 
