@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FreeBoard_Installer</name>
 	<properties>
-
+		<signalk.maptools.version>0.0.1-SNAPSHOT</signalk.maptools.version>
 		<jetty.version>7.5.4.v20111024</jetty.version>
 		<camel.version>2.10.1</camel.version>
 		<zk.version>6.5.0</zk.version>
@@ -79,6 +79,12 @@
 
 	</repositories>
 	<dependencies>
+	<!-- chart processor -->
+		<dependency>
+			<groupId>org.signalk</groupId>
+			<artifactId>maptools</artifactId>
+			<version>${signalk.maptools.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>doube</groupId>
 			<artifactId>bonej</artifactId>

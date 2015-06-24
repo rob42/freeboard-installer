@@ -48,7 +48,7 @@ class ProcessingPanel extends JPanel {
 		this.add(scrollPane);
 	}
 
-	public boolean process(File f, String pythonExec) {
+	public boolean process(File f) {
 		// one at a time
 		
 		//System.out.println("Processing " + f.getAbsolutePath());
@@ -56,7 +56,6 @@ class ProcessingPanel extends JPanel {
 			ChartProcessor processor = new ChartProcessor(true, textArea);
 			redirectSystemStreams();
 			System.out.println("Processing " + f.getAbsolutePath());
-			processor.setPythonExec(pythonExec);
 			processor.processChart(f, true);
 
 		} catch (Exception e) {
