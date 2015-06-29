@@ -23,7 +23,11 @@
  Start the freeboard-installer:
 	* You may be able to double-click the jar file
 	OR
-	* from the command line: "java -jar freeboard-installer.jar"   
+	* from the command line: "java -Xmx2048m -jar freeboard-installer.jar"   
+
+ NOTE: The image processing uses a LOT of memory. By default java will probably assign too little, resulting in OutOfMemeory errors.
+ The `-Xmx2048m` in the command line above assigns 2Gb, which works for me. If thats not enogh, try `-Xmx4096m`.
+ Fairly obviously chart processing is not going to work on a system with 1Gb of RAM....
 
  Follow the notes on each tab
 

@@ -75,7 +75,8 @@ public class ZipUtils {
 		for (int i = 0; i < files.length; i++) {
 			try {
 				String name = files[i].getAbsolutePath();
-				name = name.substring((int) sourceDir.getAbsolutePath().length());
+				
+				name = name.substring((int) sourceDir.getAbsolutePath().length()+1);
 				// if the file is directory, call the function recursively
 				if (files[i].isDirectory()) {
 					addDirectory(zout, files[i], sourceDir);
