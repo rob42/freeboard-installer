@@ -51,6 +51,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -80,11 +89,6 @@
 	</repositories>
 	<dependencies>
 	<!-- chart processor -->
-		<dependency>
-			<groupId>org.signalk</groupId>
-			<artifactId>maptools</artifactId>
-			<version>${signalk.maptools.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>doube</groupId>
 			<artifactId>bonej</artifactId>
@@ -160,6 +164,12 @@
 			<artifactId>jaxen</artifactId>
 			<version>1.1.4</version>
 		</dependency>
+	    <dependency>
+	        <groupId>org.signalk</groupId>
+	        <artifactId>maptools</artifactId>
+	        <version>0.0.1-SNAPSHOT</version>
+	        <type>jar</type>
+	    </dependency>
 	</dependencies>
 	<organization>
 		<name>Tasman Consulting Ltd</name>
