@@ -90,11 +90,6 @@
 	<dependencies>
 	<!-- chart processor -->
 		<dependency>
-			<groupId>org.signalk</groupId>
-			<artifactId>maptools</artifactId>
-			<version>${signalk.maptools.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>doube</groupId>
 			<artifactId>bonej</artifactId>
 			<version>1.0.0</version>
