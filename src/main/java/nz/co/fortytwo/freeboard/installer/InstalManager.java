@@ -212,38 +212,13 @@ public class InstalManager extends JFrame {
         String info2 = "\nUse this panel to convert charts into the correct format for FreeBoard.\n"
                 + "\nYou need to select the charts or directories containing charts, then click 'Process'.\n "
                 + "\nThe results will be in a directory with the same name as the chart, and the chart "
-                + "\ndirectory will also be compressed into a zip file ready to transfer to your \n"
-                + "FreeBoard server\n\n"
+                + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard "
+                + "\nserver\n"
                 + "\nOutput of the process will display in the right-side window\n\n";
         JTextArea jTextInfo2 = new JTextArea(info2);
         jTextInfo2.setEditable(false);
         chartWestPanel.add(jTextInfo2, "wrap");
-        //select python
-        chartWestPanel.add(new JLabel("Select Python executable:"), "wrap");
-        pythonTextField.setEditable(true);
-        pythonTextField.setText("python");
-        if (SystemUtils.IS_OS_WINDOWS) {
-            pythonTextField.setText("python.exe");
-        }
-        chartWestPanel.add(pythonTextField, "span 2");
-        pythonChooser.setApproveButtonText("Select");
-        pythonChooser.setAcceptAllFileFilterUsed(false);
-        pythonChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        pythonChooser.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
-                    pythonTextField.setText(pythonChooser.getSelectedFile().getAbsolutePath());
-                }
-            }
-        });
-        JButton pythonButton = new JButton("Select");
-        pythonButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                pythonChooser.showDialog(chartWestPanel, "Select");
 
-            }
-        });
-        chartWestPanel.add(pythonButton, "wrap");
         chartFileChooser.setApproveButtonText("Process");
         chartWestPanel.add(chartFileChooser, "span,wrap");
         chartPanel.add(chartWestPanel, BorderLayout.WEST);
@@ -331,7 +306,6 @@ public class InstalManager extends JFrame {
          *
          */
         private static final long serialVersionUID = 1L;
-        private long startTime;
 
         @Override
         public void approveSelection() {
@@ -340,7 +314,6 @@ public class InstalManager extends JFrame {
                 JOptionPane.showMessageDialog(this, "No files selected!");
                 return;
             }
-            startTime = System.currentTimeMillis();
             new Thread() {
                 String[] SUFFIX = {"kap", "KAP", "jpg", "jpeg", "JPG", "JPEG"};
 
@@ -362,11 +335,10 @@ public class InstalManager extends JFrame {
 
                     // Process the files
                     for (File f : files) {
-                        processingPanel.process(f, pythonTextField.getText());
-                        //System.out.println("Processing " + f.getAbsolutePath());
+                        processingPanel.process(f);
+                        System.out.println("Processing " + f.getAbsolutePath());
                     }
                     chartFileChooser.setEnabled(true);
-                    System.out.println(String.format("\nProcessing time %7.2f minutes", ((double)(System.currentTimeMillis()-startTime))/60000));
                 }
             }.start();
         }

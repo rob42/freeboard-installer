@@ -35,6 +35,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -45,6 +46,8 @@ import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.signalk.maptools.KapObserver;
+import org.signalk.maptools.KapProcessor;
 
 /**
  * Processes charts into tile pyramids, and adds config to chartplotter javascript.
@@ -61,7 +64,6 @@ public class ChartProcessor {
 	private JTextArea textArea;
 	private ImageFilter filter = new TransparentImageFilter();
 	private File mapCacheDir;
-	private String pythonExec;
 	
 	public ChartProcessor() throws Exception {
 		//config=Util.getConfig(null);
@@ -92,9 +94,9 @@ public class ChartProcessor {
 				// v1.7 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -if","GTiff -of vrt  WORLD.tif temp.vrt'
 				// v1.9 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -of vrt  WORLD.tif temp.vrt'
 				//to add Georef info
-				if(chartFile.getName().toUpperCase().startsWith("WORLD")){					
-					processWorldChart(chartFile,reTile,"Natural Earth");
-				}else
+				//if(chartFile.getName().toUpperCase().startsWith("WORLD")){					
+				//	processWorldChart(chartFile,reTile,"Natural Earth");
+				//}else
 				//we have a KAP file
 				if(chartFile.getName().toUpperCase().endsWith("KAP")){
 					processKapChart(chartFile,reTile);
@@ -103,7 +105,7 @@ public class ChartProcessor {
 				}
 				
 	}
-	private void processWorldChart(File chartFile, boolean reTile, String attribution) throws Exception {
+/*	private void processWorldChart(File chartFile, boolean reTile, String attribution) throws Exception {
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
 		File dir = new File(chartFile.getParentFile(),chartName);
@@ -148,7 +150,7 @@ public class ChartProcessor {
         System.out.print("Zipping directory...\n");
 		ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
 		System.out.print("Zipping directory complete\n");
-	}
+	}*/
 
 	/**
 	 * Reads the .kap file, and the generated tilesresource.xml to get
@@ -157,7 +159,7 @@ public class ChartProcessor {
 	 * @throws Exception
 	 */
 	public void processKapChart(File chartFile, boolean reTile) throws Exception {
-		String chartPath = chartFile.getParentFile().getAbsolutePath();
+		//String chartPath = chartFile.getParentFile().getAbsolutePath();
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
 		File dir = new File(chartFile.getParentFile(),chartName);
@@ -167,35 +169,19 @@ public class ChartProcessor {
 		}
 		logger.debug("Chart tag:"+chartName);
 		logger.debug("Chart dir:"+dir.getPath());
-		//start by running the gdal scripts
-		URL gdalUrl = getClass().getClassLoader().getResource("gdalToTiles.py");
-		logger.debug(gdalUrl.getPath());
-		//copy out to known location
-		//File gdalToTiles = new File("gdalToTiles.py");
-		//String gdalObj = IOUtils.toString(gdalUrl.openStream());
-		//logger.debug(gdalObj);
-		//FileUtils.writeStringToFile(gdalToTiles, gdalObj.toString());
-		List<String> arrays =  Arrays.asList(pythonExec,"gdal2tiles.py","temp.vrt", chartName);
-		if(SystemUtils.IS_OS_LINUX){
-			arrays =  Arrays.asList("gdal2tiles.py","temp.vrt", chartName);
-		}
-		if(SystemUtils.IS_OS_WINDOWS){
-			arrays = Arrays.asList(pythonExec,"C:\\Program Files (x86)\\GDAL\\gdal2tiles.py","temp.vrt", chartName);
-			if(SystemUtils.IS_OS_WINDOWS_8){
-			//In Win8 we need full path - assumes  python 3.3
-				Arrays.asList("C:\\Python33\\python", "C:\\Program Files (x86)\\GDAL\\gdal2tiles.py", chartPath +File.separator +"temp.vrt", chartPath +File.separator + chartName);
-			}
-		}
 		
 		if(reTile){
-			executeGdal(chartFile, chartName, 
-					//this was for NZ KAP charts
-					//Arrays.asList("gdal_translate", "-if","GTiff", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
-			
-					//this for US NOAA charts
-					Arrays.asList("gdal_translate", "-of", "vrt", "-expand", "rgba",chartFile.getName(),"temp.vrt"),
-					//Arrays.asList("gdal2tiles.py", "temp.vrt", chartName));
-					arrays);
+			KapProcessor processor = new KapProcessor();
+			processor.setObserver(new KapObserver() {
+				public void appendMsg(final String message) {
+					SwingUtilities.invokeLater(new Runnable() {
+					    public void run() {
+					    	textArea.append(message);  
+					    }
+					  });
+				}
+			});
+			processor.createTilePyramid(chartFile, mapCacheDir);
 		}
 		//now get the Chart Name from the kap file
 		FileReader fileReader = new FileReader(chartFile);
@@ -272,126 +258,7 @@ public class ChartProcessor {
 		System.out.print("Conversion of "+chartName+" was completed successfully!\n");
 	}
 
-	/**
-	 * Executes a script which invokes GDAL and imagemagick to process the chart
-	 * into a tile pyramid
-	 * 
-	 * @param config2
-	 * @param chartFile
-	 * @param chartName
-	 * @param list 
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 */
-	@SuppressWarnings("static-access")
-	private void executeGdal( File chartFile, String chartName, List<String> argList, List<String> tilesList ) throws IOException, InterruptedException {
-		//mkdir $1
-		//gdal_translate -of vrt -expand rgba $1.kap temp.vrt
-		 ProcessBuilder pb = new ProcessBuilder(argList);
-		 pb.directory(mapCacheDir);
-		 //pb.inheritIO();
-		 if(manager){
-			 ForkWorker fork = new ForkWorker(textArea, pb);
-			 fork.execute();
-			 while(!fork.isDone()){
-				 Thread.currentThread().sleep(500);
-				 //System.out.print(".");
-			 }
-		 }else{
-			 Process p = pb.start();
-			 p.waitFor();
-			 if(p.exitValue()>0){
-				 if(manager){
-						System.out.print("ERROR:gdal_translate did not complete normally\n");
-					}
-				 logger.error("gdal_translate did not complete normally");
-				 return;
-			 }else{
-				 System.out.print("Completed gdal_translate\n");
-			 }
-		 }
-		//gdal2tiles.py temp.vrt $1
-		 File tileDir = new File(mapCacheDir,chartName);
-		 tileDir.mkdir();
-		 pb = new ProcessBuilder(tilesList);
-		 pb.directory(mapCacheDir);
-		 //pb.inheritIO();
-		 if(manager){
-			 ForkWorker fork = new ForkWorker(textArea, pb);
-			 fork.execute();
-			 while(!fork.isDone()){
-				 Thread.currentThread().sleep(500);
-				 //System.out.print(".");
-			 }
-			 System.out.print("Completed gdal2tiles\n");
-		 }else{
-			 Process p = pb.start();
-			 p.waitFor();
-			 if(p.exitValue()>0){
-				 if(manager){
-						System.out.print("ERROR:gdal2tiles did not complete normally\n");
-					}
-				 logger.error("gdal2tiles did not complete normally");
-				 return;
-			 }else{
-				 System.out.print("Completed gdal2tiles\n");
-			 }
-		 }
-		
-		 //now make images transparent
-		 //recurse dirs
-		 recurseDirs(tileDir);
-		 
-	}
-
-	/**
-	 * Recurse tile stack an process images
-	 * @param tileDir
-	 * @throws InterruptedException 
-	 * @throws IOException 
-	 */
-	private void recurseDirs(File tileDir) throws IOException, InterruptedException {
-		if(manager){
-			System.out.print("Process "+tileDir.getAbsolutePath());
-		}
-		logger.debug("Process "+tileDir.getAbsolutePath());
-		for(File dir: tileDir.listFiles()){
-			if(dir.isDirectory()){
-				recurseDirs(dir);
-			}else{
-				if(dir.getName().endsWith(".png")){
-					processPng(dir);
-				}
-			}
-			
-		}
-		
-	}
-
-	/**
-	 * Use Imagemajick convert to make white transparent, so we can overlay charts
-	 * @param dir
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private void processPng(File dir) throws IOException, InterruptedException {
-	//	File tmpPng = new File(dir.getAbsoluteFile()+".new");
-		if(manager){
-			System.out.print("      Convert "+dir.getName()+"\n");
-		}
-		logger.debug("      Convert "+dir.getName());
-		
-		BufferedImage img = ImageIO.read(dir);
-		ImageProducer ip = new FilteredImageSource(img.getSource(), filter);
-		Image transparentImage = Toolkit.getDefaultToolkit().createImage(ip);
-		BufferedImage dest = new BufferedImage( img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2 = dest.createGraphics();
-		g2.drawImage(transparentImage, 0, 0, null);
-		g2.dispose();
-		ImageIO.write(dest, "PNG", dir);
-		
-	}
-
+	
 	
 	      
 	public Image makeColorTransparent(Image im, final Color color) {
@@ -423,12 +290,7 @@ public class ChartProcessor {
 		ChartProcessor chartProcessor = new ChartProcessor();
 		chartProcessor.processChart(chartFile,reTile);
 	}
-	public String getPythonExec() {
-		return pythonExec;
-	}
-	public void setPythonExec(String pythonExec) {
-		this.pythonExec = pythonExec;
-	}
+	
 
 	
 
