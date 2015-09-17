@@ -212,7 +212,7 @@ public class InstalManager extends JFrame {
         String info2 = "\nUse this panel to convert charts into the correct format for FreeBoard.\n"
                 + "\nYou need to select the charts or directories containing charts, then click 'Process'.\n "
                 + "\nThe results will be in a directory with the same name as the chart, and the chart "
-                + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard \n\n"
+                + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard "
                 + "\nserver\n"
                 + "\nOutput of the process will display in the right-side window\n\n";
         JTextArea jTextInfo2 = new JTextArea(info2);
