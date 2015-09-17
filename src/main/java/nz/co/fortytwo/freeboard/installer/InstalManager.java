@@ -345,8 +345,8 @@ public class InstalManager extends JFrame {
 
         @Override
         public void cancelSelection() {
+        	
             processingPanel.clear();
-            chartFileChooser.cancelSelection();
 
         }
     }
