@@ -1,6 +1,6 @@
 /*
  * Copyright 2012,2013 Robert Huitema robert@42.co.nz
- * 
+ *
  * This file is part of FreeBoard. (http://www.42.co.nz/freeboard)
  *
  *  FreeBoard is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ import org.signalk.maptools.KapProcessor;
 /**
  * Processes charts into tile pyramids, and adds config to chartplotter javascript.
  * Currently only handles BSB/KAP
- * 
+ *
  * @author robert
  *
  */
@@ -64,10 +64,10 @@ public class ChartProcessor {
 	private JTextArea textArea;
 	private ImageFilter filter = new TransparentImageFilter();
 	private File mapCacheDir;
-	
+
 	public ChartProcessor() throws Exception {
 		//config=Util.getConfig(null);
-		
+
 	}
 	public ChartProcessor(boolean manager,JTextArea textArea) throws Exception {
 		//config=Util.getConfig(null);
@@ -83,9 +83,9 @@ public class ChartProcessor {
 		//make a file
 				mapCacheDir=chartFile.getParentFile();
 				if(!chartFile.exists()){
-					if(manager){
-						System.out.print("No file at "+chartFile.getAbsolutePath()+"\n");
-					}
+//					if(manager){
+//						logger.error("No file at "+chartFile.getAbsolutePath()+"\n");
+//					}
 					logger.error("No file at "+chartFile.getAbsolutePath());
 				}
 				//for WORLD.tif (Natural Earth shape file) we need
@@ -94,7 +94,7 @@ public class ChartProcessor {
 				// v1.7 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -if","GTiff -of vrt  WORLD.tif temp.vrt'
 				// v1.9 'gdal_translate -a_ullr -180.0 90.0 180.0 -90.0 -a_srs "EPSG:4326" -of vrt  WORLD.tif temp.vrt'
 				//to add Georef info
-				//if(chartFile.getName().toUpperCase().startsWith("WORLD")){					
+				//if(chartFile.getName().toUpperCase().startsWith("WORLD")){
 				//	processWorldChart(chartFile,reTile,"Natural Earth");
 				//}else
 				//we have a KAP file
@@ -103,7 +103,7 @@ public class ChartProcessor {
 				}else{
 					System.out.print("File "+chartFile.getAbsolutePath()+" not recognised so not processed\n");
 				}
-				
+
 	}
 /*	private void processWorldChart(File chartFile, boolean reTile, String attribution) throws Exception {
 		String chartName = chartFile.getName();
@@ -154,7 +154,7 @@ public class ChartProcessor {
 
 	/**
 	 * Reads the .kap file, and the generated tilesresource.xml to get
-	 * chart desc, bounding box, and zoom levels 
+	 * chart desc, bounding box, and zoom levels
 	 * @param chartFile
 	 * @throws Exception
 	 */
@@ -163,20 +163,20 @@ public class ChartProcessor {
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
 		File dir = new File(chartFile.getParentFile(),chartName);
-		if(manager){
-			System.out.print("Chart tag:"+chartName+"\n");
-			System.out.print("Chart dir:"+dir.getPath()+"\n");
-		}
-		logger.debug("Chart tag:"+chartName);
-		logger.debug("Chart dir:"+dir.getPath());
-		
+//		if(manager){
+//			logger.info("Chart tag:"+chartName+"\n");
+//			logger.info("Chart dir:"+dir.getPath()+"\n");
+//		}
+//		logger.info("Processing Chart tag:"+chartName);
+		logger.info("Chart dir:"+dir.getPath());
+
 		if(reTile){
 			KapProcessor processor = new KapProcessor();
 			processor.setObserver(new KapObserver() {
 				public void appendMsg(final String message) {
 					SwingUtilities.invokeLater(new Runnable() {
 					    public void run() {
-					    	textArea.append(message);  
+					    	textArea.append(message);
 					    }
 					  });
 				}
@@ -203,7 +203,7 @@ public class ChartProcessor {
 			desc=desc.substring(0,40);
 		}
 		//process the layer data
-		
+
 		//read data from dirName/tilelayers.xml
 		SAXReader reader = new SAXReader();
         Document document = reader.read(new File(dir,"tilemapresource.xml"));
@@ -213,10 +213,10 @@ public class ChartProcessor {
         String miny = box.attribute("miny").getValue();
         String maxx = box.attribute("maxx").getValue();
         String maxy = box.attribute("maxy").getValue();
-        if(manager){
-			System.out.print("Box:"+minx+","+miny+","+maxx+","+maxy+"\n");
-		}
-        logger.debug("Box:"+minx+","+miny+","+maxx+","+maxy);
+//        if(manager){
+//			logger.info("Box:"+minx+","+miny+","+maxx+","+maxy+"\n");
+//		}
+        logger.debug("Box:"+minx+", "+miny+", "+maxx+", "+maxy);
 
         //we need TileSets, each tileset has an href, we need first and last for zooms
         @SuppressWarnings("unchecked")
@@ -228,9 +228,9 @@ public class ChartProcessor {
             if(zoom<minZoom)minZoom=zoom;
             if(zoom>maxZoom)maxZoom=zoom;
         }
-        if(manager){
-			System.out.print("Zoom:"+minZoom+"-"+maxZoom+"\n");
-		}
+//        if(manager){
+//			System.out.print("Zoom:"+minZoom+"-"+maxZoom+"\n");
+//		}
         logger.debug("Zoom:"+minZoom+"-"+maxZoom);
         //cant have - in js var name
         String chartNameJs = chartName.replaceAll("^[^a-zA-Z_$]|[^\\w$]","_");
@@ -242,35 +242,34 @@ public class ChartProcessor {
         			"\t\tmaxZoom: "+maxZoom+",\n"+
         			"\t\ttms: true\n"+
         			"\t\t}).addTo(map);\n";
-        		
-        
-        if(manager){
-			System.out.print(snippet+"\n");
-		}
+
+
+//        if(manager){
+//			System.out.print(snippet+"\n");
+//		}
         logger.debug(snippet);
-		//add it to local freeboard.txt 
+		//add it to local freeboard.txt
         File layers = new File(dir,"freeboard.txt");
         FileUtils.writeStringToFile(layers, snippet);
         //now zip the result
-        System.out.print("Zipping directory...\n");
+        logger.info("Zipping directory...");
 		ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
-		System.out.print("Zipping directory complete, in "+new File(dir.getParentFile(),chartName+".zip").getAbsolutePath()+"\n");
-		System.out.print("Conversion of "+chartName+" was completed successfully!\n");
+		logger.info("Zipping directory complete, in "+new File(dir.getParentFile(),chartName+".zip").getAbsolutePath());
 	}
 
-	
-	
-	      
+
+
+
 	public Image makeColorTransparent(Image im, final Color color) {
 		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
 		return Toolkit.getDefaultToolkit().createImage(ip);
     }
 	/**
-	 * First arg is chart filename, second is boolean reTile. 
+	 * First arg is chart filename, second is boolean reTile.
 	 * reTile = true causes the tiles to be recreated,
 	 * false just recreates the layers conf text.
 	 * @param args
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		//arg0 = chartfile
@@ -290,8 +289,8 @@ public class ChartProcessor {
 		ChartProcessor chartProcessor = new ChartProcessor();
 		chartProcessor.processChart(chartFile,reTile);
 	}
-	
 
-	
+
+
 
 }
