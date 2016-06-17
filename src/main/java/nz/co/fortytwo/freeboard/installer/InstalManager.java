@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
+import javax.swing.ButtonGroup;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -36,6 +37,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -45,13 +47,13 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.apache.commons.lang3.SystemUtils;
-
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import purejavacomm.CommPortIdentifier;
 
 /**
@@ -59,320 +61,353 @@ import purejavacomm.CommPortIdentifier;
  */
 public class InstalManager extends JFrame {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
-    private ProcessingPanel processingPanel = new ProcessingPanel();
-    private LoadingPanel uploadingPanel = new LoadingPanel();
-    private CalibratePanel calibrationPanel = new CalibratePanel();
-    private ChartFileChooser chartFileChooser = new ChartFileChooser();
-    private HexFileChooser hexFileChooser = new HexFileChooser();
-    private JFileChooser arduinoIdeChooser = new JFileChooser();
-    private JFileChooser pythonChooser = new JFileChooser();
-    private JTextField arduinoDirTextField = new JTextField(40);
-    private JTextField pythonTextField = new JTextField(40);
-    File toolsDir;
-    JComboBox<String> deviceComboBox;
-    HashMap<String, String> deviceMap = new HashMap<String, String>();
-    JComboBox<String> portComboBox;
-    JComboBox<String> portComboBox1;
+	/**
+	 *
+	 */
+	private static Logger logger = Logger.getLogger(InstalManager.class);
+	private static final long serialVersionUID = 1L;
+	private ProcessingPanel processingPanel = new ProcessingPanel(new BorderLayout());
+	private LoadingPanel uploadingPanel = new LoadingPanel();
+	private CalibratePanel calibrationPanel = new CalibratePanel();
+	private ChartFileChooser chartFileChooser = new ChartFileChooser();
+	private HexFileChooser hexFileChooser = new HexFileChooser();
+	private JFileChooser arduinoIdeChooser = new JFileChooser();
+	private JFileChooser pythonChooser = new JFileChooser();
+	private JTextField arduinoDirTextField = new JTextField(40);
+	private JTextField pythonTextField = new JTextField(40);
+	private JRadioButton infoButton = new JRadioButton("Info");
+	private JRadioButton debugButton = new JRadioButton("Debug");
+	private ButtonGroup loggingGroup = new ButtonGroup();
+	File toolsDir;
+	private long startTime;
+	JComboBox<String> deviceComboBox;
+	HashMap<String, String> deviceMap = new HashMap<String, String>();
+	JComboBox<String> portComboBox;
+	JComboBox<String> portComboBox1;
 
-    public InstalManager(String name) {
-        super(name);
+	public InstalManager(String name) {
+		super(name);
 
-        String[] devices = new String[]{"ArduIMU v3", "Arduino Mega 1280", "Arduino Mega 2560"};
-        deviceMap.put(devices[0], "atmega328p");
-        deviceMap.put(devices[1], "atmega1280");
-        deviceMap.put(devices[2], "atmega2560");
-        deviceComboBox = new JComboBox<String>(devices);
+		String[] devices = new String[]{"ArduIMU v3", "Arduino Mega 1280", "Arduino Mega 2560"};
+		deviceMap.put(devices[0], "atmega328p");
+		deviceMap.put(devices[1], "atmega1280");
+		deviceMap.put(devices[2], "atmega2560");
+		deviceComboBox = new JComboBox<String>(devices);
 
-        //toolsDir = new File("./src/main/resources/tools");
-        //if (!toolsDir.exists()) {
-        //	System.out.println("Cannot locate avrdude");
-        //}
-        @SuppressWarnings("unchecked")
-        Enumeration<CommPortIdentifier> commPorts = CommPortIdentifier.getPortIdentifiers();
-        Vector<String> commModel = new Vector<String>();
-        while (commPorts.hasMoreElements()) {
-            CommPortIdentifier commPort = commPorts.nextElement();
-            if (commPort.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                //?if(SystemUtils.IS_LINUX())
-                if (commPort.getName().startsWith("tty")) {
-                    // linux
-                    commModel.add("/dev/" + commPort.getName());
-                } else {
-                    // windoze
-                    commModel.add(commPort.getName());
-                }
-            }
-        }
-        portComboBox = new JComboBox<String>(commModel.toArray(new String[0]));
-        portComboBox1 = new JComboBox<String>(commModel.toArray(new String[0]));
+		//toolsDir = new File("./src/main/resources/tools");
+		//if (!toolsDir.exists()) {
+		//	System.out.println("Cannot locate avrdude");
+		//}
+		@SuppressWarnings("unchecked")
+		Enumeration<CommPortIdentifier> commPorts = CommPortIdentifier.getPortIdentifiers();
+		Vector<String> commModel = new Vector<String>();
+		while (commPorts.hasMoreElements()) {
+			CommPortIdentifier commPort = commPorts.nextElement();
+			if (commPort.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+				//?if(SystemUtils.IS_LINUX())
+				if (commPort.getName().startsWith("tty")) {
+					// linux
+					commModel.add("/dev/" + commPort.getName());
+				} else {
+					// windoze
+					commModel.add(commPort.getName());
+				}
+			}
+		}
+		portComboBox = new JComboBox<String>(commModel.toArray(new String[0]));
+		portComboBox1 = new JComboBox<String>(commModel.toArray(new String[0]));
 
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.addWidgets();
-        this.pack();
-        this.setVisible(true);
-        JOptionPane.showMessageDialog(this, "This utility is quite experimental, specifically I develop on Linux, and I dont have MS Windows \nto test on, so dont be surprised by errors!\n"
-                + "If you have problems, copy the output from the right side panel, along with a clear description \nof what you were doing, and email me at robert@42.co.nz"
-                + " so I can recreate and fix the error."
-                + "\n\nCopyright 2013 R T Huitema. Licenced under GNU GPL v3");
-    }
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.addWidgets();
+		this.pack();
+		this.setVisible(true);
+		JOptionPane.showMessageDialog(this, "This utility is quite experimental, specifically I develop on Linux, and I dont have MS Windows \nto test on, so dont be surprised by errors!\n"
+				  + "If you have problems, copy the output from the right side panel, along with a clear description \nof what you were doing, and email me at robert@42.co.nz"
+				  + " so I can recreate and fix the error."
+				  + "\n\nCopyright 2013 R T Huitema. Licenced under GNU GPL v3");
+	}
 
-    private void addWidgets() {
+	private void addWidgets() {
 
-        JTabbedPane tabPane = new JTabbedPane();
-        this.add(tabPane, BorderLayout.CENTER);
-        // upload to arduinos
-        JPanel uploadPanel = new JPanel();
-        uploadPanel.setLayout(new BorderLayout());
-        uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
-        final JPanel westUploadPanel = new JPanel(new MigLayout());
+		JTabbedPane tabPane = new JTabbedPane();
+		this.add(tabPane, BorderLayout.CENTER);
+		// upload to arduinos
+		JPanel uploadPanel = new JPanel();
+		uploadPanel.setLayout(new BorderLayout());
+		uploadPanel.add(uploadingPanel, BorderLayout.CENTER);
+		final JPanel westUploadPanel = new JPanel(new MigLayout());
 
-        String info = "\nUse this panel to upload compiled code to the arduino devices.\n\n"
-                + "NOTE: directories with spaces will probably not work!\n\n"
-                + "First select the base directory of your Arduino IDE installation, eg C:/devtools/arduino-1.5.2\n\n"
-                + "Then select target files to upload, these are ended in '.hex'\n"
-                + "\nand can be downloaded from github (https://github.com/rob42),\n"
-                + " see the 'Release*' sub-directories\n\n"
-                + "Output of the process will display in the right-side window\n\n";
-        JTextArea jTextInfo = new JTextArea(info);
-        jTextInfo.setEditable(false);
-        westUploadPanel.add(jTextInfo, "span,wrap");
+		String info = "\nUse this panel to upload compiled code to the arduino devices.\n\n"
+				  + "NOTE: directories with spaces will probably not work!\n\n"
+				  + "First select the base directory of your Arduino IDE installation, eg C:/devtools/arduino-1.5.2\n\n"
+				  + "Then select target files to upload, these are ended in '.hex'\n"
+				  + "\nand can be downloaded from github (https://github.com/rob42),\n"
+				  + " see the 'Release*' sub-directories\n\n"
+				  + "Output of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo = new JTextArea(info);
+		jTextInfo.setEditable(false);
+		westUploadPanel.add(jTextInfo, "span,wrap");
 
-        westUploadPanel.add(new JLabel("Select Arduino IDE directory:"), "wrap");
-        arduinoDirTextField.setEditable(false);
-        westUploadPanel.add(arduinoDirTextField, "span 2");
-        arduinoIdeChooser.setApproveButtonText("Select");
-        arduinoIdeChooser.setAcceptAllFileFilterUsed(false);
-        arduinoIdeChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        arduinoIdeChooser.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
+		westUploadPanel.add(new JLabel("Select Arduino IDE directory:"), "wrap");
+		arduinoDirTextField.setEditable(false);
+		westUploadPanel.add(arduinoDirTextField, "span 2");
+		arduinoIdeChooser.setApproveButtonText("Select");
+		arduinoIdeChooser.setAcceptAllFileFilterUsed(false);
+		arduinoIdeChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		arduinoIdeChooser.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
 
-                    toolsDir = new File(arduinoIdeChooser.getSelectedFile(), File.separator + "hardware" + File.separator + "tools" + File.separator);
-                    if (!toolsDir.exists()) {
-                        toolsDir = null;
-                        JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Arduino IDE directory");
-                        return;
-                    }
-                    arduinoDirTextField.setText(arduinoIdeChooser.getSelectedFile().getAbsolutePath());
-                }
-            }
-        });
-        JButton arduinoDirButton = new JButton("Select");
-        arduinoDirButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                arduinoIdeChooser.showDialog(westUploadPanel, "Select");
+					toolsDir = new File(arduinoIdeChooser.getSelectedFile(), File.separator + "hardware" + File.separator + "tools" + File.separator);
+					if (!toolsDir.exists()) {
+						toolsDir = null;
+						JOptionPane.showMessageDialog(westUploadPanel, "Not a valid Arduino IDE directory");
+						return;
+					}
+					arduinoDirTextField.setText(arduinoIdeChooser.getSelectedFile().getAbsolutePath());
+				}
+			}
+		});
+		JButton arduinoDirButton = new JButton("Select");
+		arduinoDirButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				arduinoIdeChooser.showDialog(westUploadPanel, "Select");
 
-            }
-        });
-        westUploadPanel.add(arduinoDirButton, "wrap");
+			}
+		});
+		westUploadPanel.add(arduinoDirButton, "wrap");
 
+		westUploadPanel.add(new JLabel("Select comm port:"));
+		westUploadPanel.add(portComboBox, "wrap");
 
-        westUploadPanel.add(new JLabel("Select comm port:"));
-        westUploadPanel.add(portComboBox, "wrap");
+		westUploadPanel.add(new JLabel("Select device:"), "gap unrelated");
+		westUploadPanel.add(deviceComboBox, "wrap");
 
-        westUploadPanel.add(new JLabel("Select device:"), "gap unrelated");
-        westUploadPanel.add(deviceComboBox, "wrap");
+		hexFileChooser.setApproveButtonText("Upload");
+		hexFileChooser.setAcceptAllFileFilterUsed(false);
+		hexFileChooser.addChoosableFileFilter(new FileFilter() {
+			@Override
+			public String getDescription() {
+				return "*.hex - Hex file";
+			}
 
-        hexFileChooser.setApproveButtonText("Upload");
-        hexFileChooser.setAcceptAllFileFilterUsed(false);
-        hexFileChooser.addChoosableFileFilter(new FileFilter() {
-            @Override
-            public String getDescription() {
-                return "*.hex - Hex file";
-            }
+			@Override
+			public boolean accept(File f) {
+				if (f.isDirectory()) {
+					return true;
+				}
+				if (f.getName().toUpperCase().endsWith(".HEX")) {
+					return true;
+				}
+				return false;
+			}
+		});
+		westUploadPanel.add(hexFileChooser, "span, wrap");
 
-            @Override
-            public boolean accept(File f) {
-                if (f.isDirectory()) {
-                    return true;
-                }
-                if (f.getName().toUpperCase().endsWith(".HEX")) {
-                    return true;
-                }
-                return false;
-            }
-        });
-        westUploadPanel.add(hexFileChooser, "span, wrap");
+		uploadPanel.add(westUploadPanel, BorderLayout.WEST);
+		tabPane.addTab("Upload", uploadPanel);
 
-        uploadPanel.add(westUploadPanel, BorderLayout.WEST);
-        tabPane.addTab("Upload", uploadPanel);
+		// charts
+		JPanel chartPanel = new JPanel();
+		chartPanel.setLayout(new BorderLayout());
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Charts", "tiff", "kap", "KAP", "TIFF", "tif", "TIF");
+		chartFileChooser.setFileFilter(filter);
+		chartFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		chartFileChooser.setMultiSelectionEnabled(true);
+		final JPanel chartWestPanel = new JPanel(new MigLayout());
+		String info2 = "\nUse this panel to convert charts into the correct format for FreeBoard.\n"
+				  + "\nYou need to select the charts or directories containing charts, then click 'Process'.\n "
+				  + "\nThe results will be in a directory with the same name as the chart, and the chart "
+				  + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard "
+				  + "\nserver\n"
+				  + "\nOutput of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo2 = new JTextArea(info2);
+		jTextInfo2.setEditable(false);
+		chartWestPanel.add(jTextInfo2, "wrap");
 
-        // charts
-        JPanel chartPanel = new JPanel();
-        chartPanel.setLayout(new BorderLayout());
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Charts", "tiff", "kap", "KAP", "TIFF", "tif", "TIF");
-        chartFileChooser.setFileFilter(filter);
-        chartFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        chartFileChooser.setMultiSelectionEnabled(true);
-        final JPanel chartWestPanel = new JPanel(new MigLayout());
-        String info2 = "\nUse this panel to convert charts into the correct format for FreeBoard.\n"
-                + "\nYou need to select the charts or directories containing charts, then click 'Process'.\n "
-                + "\nThe results will be in a directory with the same name as the chart, and the chart "
-                + "\ndirectory will also be compressed into a zip file ready to transfer to your FreeBoard "
-                + "\nserver\n"
-                + "\nOutput of the process will display in the right-side window\n\n";
-        JTextArea jTextInfo2 = new JTextArea(info2);
-        jTextInfo2.setEditable(false);
-        chartWestPanel.add(jTextInfo2, "wrap");
+		chartFileChooser.setApproveButtonText("Process");
+		chartWestPanel.add(chartFileChooser, "span,wrap");
 
-        chartFileChooser.setApproveButtonText("Process");
-        chartWestPanel.add(chartFileChooser, "span,wrap");
-        chartPanel.add(chartWestPanel, BorderLayout.WEST);
-        chartPanel.add(processingPanel, BorderLayout.CENTER);
-        tabPane.addTab("Charts", chartPanel);
+		final JPanel loggingPanel = new JPanel(new MigLayout());
+		loggingGroup.add(infoButton);
+		loggingGroup.add(debugButton);
+		debugButton.setSelected(logger.isDebugEnabled());
+		infoButton.setSelected(!logger.isDebugEnabled());
+		infoButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (infoButton.isSelected()) {
+					LogManager.getRootLogger().setLevel(Level.INFO);
+				}
+			}
+		});
+		debugButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (debugButton.isSelected()) {
+					LogManager.getRootLogger().setLevel(Level.DEBUG);
+				}
+			}
+		});
 
-        // IMU calibration
-        JPanel calPanel = new JPanel();
-        calPanel.setLayout(new BorderLayout());
-        JPanel westCalPanel = new JPanel(new MigLayout());
-        String info3 = "\nUse this panel to calibrate your ArduIMU.\n"
-                + "\nYou should do this as near to the final location as possible,\n"
-                + "and like all compasses, as far from wires and magnetic materials \n"
-                + "as possible.\n"
-                + "\nSelect your comm port, then click 'Start'.\n "
-                + "\nSmoothly and steadily rotate the ArduIMU around all 3 axes (x,y,z)\n"
-                + "several times. Then press stop and the calibration will be performed and\n"
-                + "uploaded to the ArduIMU\n\n"
-                + "Output of the process will display in the right-side window\n\n";
-        JTextArea jTextInfo3 = new JTextArea(info3);
-        jTextInfo3.setEditable(false);
-        westCalPanel.add(jTextInfo3, "span, wrap");
-        westCalPanel.add(new JLabel("Select comm port:"));
+		loggingPanel.add(new JLabel("Logging Level"));
+		loggingPanel.add(infoButton);
+		loggingPanel.add(debugButton);
+		chartWestPanel.add(loggingPanel);
 
-        westCalPanel.add(portComboBox1, "wrap");
-        JButton startCal = new JButton("Start");
-        startCal.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                calibrationPanel.process((String) portComboBox.getSelectedItem());
-            }
-        });
-        westCalPanel.add(startCal);
-        JButton stopCal = new JButton("Stop");
-        stopCal.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                calibrationPanel.stopProcess();
-            }
-        });
-        westCalPanel.add(stopCal);
+		chartPanel.add(chartWestPanel, BorderLayout.WEST);
+		chartPanel.add(processingPanel, BorderLayout.CENTER);
+		tabPane.addTab("Charts", chartPanel);
 
-        calPanel.add(westCalPanel, BorderLayout.WEST);
-        calPanel.add(calibrationPanel, BorderLayout.CENTER);
+		// IMU calibration
+		JPanel calPanel = new JPanel();
+		calPanel.setLayout(new BorderLayout());
+		JPanel westCalPanel = new JPanel(new MigLayout());
+		String info3 = "\nUse this panel to calibrate your ArduIMU.\n"
+				  + "\nYou should do this as near to the final location as possible,\n"
+				  + "and like all compasses, as far from wires and magnetic materials \n"
+				  + "as possible.\n"
+				  + "\nSelect your comm port, then click 'Start'.\n "
+				  + "\nSmoothly and steadily rotate the ArduIMU around all 3 axes (x,y,z)\n"
+				  + "several times. Then press stop and the calibration will be performed and\n"
+				  + "uploaded to the ArduIMU\n\n"
+				  + "Output of the process will display in the right-side window\n\n";
+		JTextArea jTextInfo3 = new JTextArea(info3);
+		jTextInfo3.setEditable(false);
+		westCalPanel.add(jTextInfo3, "span, wrap");
+		westCalPanel.add(new JLabel("Select comm port:"));
 
-        tabPane.addTab("Calibration", calPanel);
+		westCalPanel.add(portComboBox1, "wrap");
+		JButton startCal = new JButton("Start");
+		startCal.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				calibrationPanel.process((String) portComboBox.getSelectedItem());
+			}
+		});
+		westCalPanel.add(startCal);
+		JButton stopCal = new JButton("Stop");
+		stopCal.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				calibrationPanel.stopProcess();
+			}
+		});
+		westCalPanel.add(stopCal);
 
-    }
+		calPanel.add(westCalPanel, BorderLayout.WEST);
+		calPanel.add(calibrationPanel, BorderLayout.CENTER);
 
-    class HexFileChooser extends JFileChooser {
+		tabPane.addTab("Calibration", calPanel);
 
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
+	}
 
-        @Override
-        public void approveSelection() {
-            if (toolsDir == null) {
-                //need to select arduino dir first
-                JOptionPane.showMessageDialog(this, "You must select the Arduino IDE directory first");
-                return;
-            }
-            final File f = hexFileChooser.getSelectedFile();
+	class HexFileChooser extends JFileChooser {
 
-            new Thread() {
-                @Override
-                public void run() {
-                    String device = deviceMap.get(deviceComboBox.getSelectedItem());
-                    hexFileChooser.setEnabled(false);
-                    uploadingPanel.process(f, (String) portComboBox.getSelectedItem(), device, toolsDir);
-                    hexFileChooser.setEnabled(true);
-                }
-            }.start();
-        }
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
 
-        @Override
-        public void cancelSelection() {
-            uploadingPanel.clear();
+		@Override
+		public void approveSelection() {
+			if (toolsDir == null) {
+				//need to select arduino dir first
+				JOptionPane.showMessageDialog(this, "You must select the Arduino IDE directory first");
+				return;
+			}
+			final File f = hexFileChooser.getSelectedFile();
 
-        }
-    }
+			new Thread() {
+				@Override
+				public void run() {
+					String device = deviceMap.get(deviceComboBox.getSelectedItem());
+					hexFileChooser.setEnabled(false);
+					uploadingPanel.process(f, (String) portComboBox.getSelectedItem(), device, toolsDir);
+					hexFileChooser.setEnabled(true);
+				}
+			}.start();
+		}
 
-    class ChartFileChooser extends JFileChooser {
+		@Override
+		public void cancelSelection() {
+			uploadingPanel.clear();
 
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
+		}
+	}
 
-        @Override
-        public void approveSelection() {
-            final File[] filesDirs = chartFileChooser.getSelectedFiles();
-            if (filesDirs == null || filesDirs.length == 0) {
-                JOptionPane.showMessageDialog(this, "No files selected!");
-                return;
-            }
-            new Thread() {
-                String[] SUFFIX = {"kap", "KAP", "jpg", "jpeg", "JPG", "JPEG"};
+	class ChartFileChooser extends JFileChooser {
 
-                public void run() {
-                    IOFileFilter filter = new SuffixFileFilter(SUFFIX);
-                    chartFileChooser.setEnabled(false);
-                    Collection<File> files = new java.util.LinkedList<File>();
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
 
-                    // If the selection includes a chart file or files, they will be added to the List files
-                    // If the selection contains directories with charts, the directory tree will be searched
-                    // recursively to find all of the chart files and they will be add to the List files
-                    for (File d : filesDirs) {
-                        if (d.isFile()) {
-                            files.add(d);
-                        } else {
-                            files.addAll((List<File>) (org.apache.commons.io.FileUtils.listFiles(d, filter, TrueFileFilter.INSTANCE)));
-                        }
-                    }
+		@Override
+		public void approveSelection() {
+			final File[] filesDirs = chartFileChooser.getSelectedFiles();
+			if (filesDirs == null || filesDirs.length == 0) {
+				JOptionPane.showMessageDialog(this, "No files selected!");
+				return;
+			}
+			startTime = System.currentTimeMillis();
+			new Thread() {
+				String[] SUFFIX = {"kap", "KAP", "jpg", "jpeg", "JPG", "JPEG"};
 
-                    // Process the files
-                    for (File f : files) {
-                        processingPanel.process(f);
-                        System.out.println("Processing " + f.getAbsolutePath());
-                    }
-                    chartFileChooser.setEnabled(true);
-                }
-            }.start();
-        }
+				public void run() {
+					IOFileFilter filter = new SuffixFileFilter(SUFFIX);
+					chartFileChooser.setEnabled(false);
+					Collection<File> files = new java.util.LinkedList<File>();
 
-        @Override
-        public void cancelSelection() {
-        	
-            processingPanel.clear();
+					// If the selection includes a chart file or files, they will be added to the List files
+					// If the selection contains directories with charts, the directory tree will be searched
+					// recursively to find all of the chart files and they will be add to the List files
+					for (File d : filesDirs) {
+						if (d.isFile()) {
+							files.add(d);
+						} else {
+							files.addAll((List<File>) (org.apache.commons.io.FileUtils.listFiles(d, filter, TrueFileFilter.INSTANCE)));
+						}
+					}
 
-        }
-    }
+					// Process the files
+					for (File f : files) {
+						logger.info("Processing " + f.getAbsolutePath());
+						processingPanel.process(f);
+						long elapTime = System.currentTimeMillis() - startTime;
+						logger.info("Elapsed time "+elapTime/1000.+"\n");
+					}
+					chartFileChooser.setEnabled(true);
+				}
+			}.start();
+		}
 
-    public static void main(String[] args) {
-        System.out.println("Current dir:" + new File(".").getAbsolutePath());
-        try {
-            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (UnsupportedLookAndFeelException e) {
-            // handle exception
-        } catch (ClassNotFoundException e) {
-            // handle exception
-        } catch (InstantiationException e) {
-            // handle exception
-        } catch (IllegalAccessException e) {
-            // handle exception
-        }
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new InstalManager("FreeBoard - Install Manager").setVisible(true);
-            }
-        });
-    }
+		@Override
+		public void cancelSelection() {
+
+			processingPanel.clear();
+
+		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println("Current dir:" + new File(".").getAbsolutePath());
+		try {
+			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(info.getName())) {
+					UIManager.setLookAndFeel(info.getClassName());
+					break;
+				}
+			}
+		} catch (UnsupportedLookAndFeelException e) {
+			// handle exception
+		} catch (ClassNotFoundException e) {
+			// handle exception
+		} catch (InstantiationException e) {
+			// handle exception
+		} catch (IllegalAccessException e) {
+			// handle exception
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				new InstalManager("FreeBoard - Install Manager").setVisible(true);
+			}
+		});
+	}
 }
