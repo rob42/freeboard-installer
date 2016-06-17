@@ -32,7 +32,7 @@
  Follow the notes on each tab
 
 
-###For charts, You will need no longer need gdal installed on you PC.!
+###For charts, You no longer need gdal installed on you PC.!
 
 	Start the freeboard-installer:
 	* You may be able to double-click the jar file
