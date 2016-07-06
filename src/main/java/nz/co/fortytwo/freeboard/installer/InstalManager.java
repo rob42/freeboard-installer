@@ -78,6 +78,10 @@ public class InstalManager extends JFrame {
 	private JRadioButton infoButton = new JRadioButton("Info");
 	private JRadioButton debugButton = new JRadioButton("Debug");
 	private ButtonGroup loggingGroup = new ButtonGroup();
+	private JRadioButton allowButton = new JRadioButton("Allow");
+	private JRadioButton fixButton = new JRadioButton("Fix");
+	private ButtonGroup transparentGroup = new ButtonGroup();
+	private boolean fixTransparentBlack = false;
 	File toolsDir;
 	private long startTime;
 	JComboBox<String> deviceComboBox;
@@ -251,7 +255,32 @@ public class InstalManager extends JFrame {
 		loggingPanel.add(new JLabel("Logging Level"));
 		loggingPanel.add(infoButton);
 		loggingPanel.add(debugButton);
-		chartWestPanel.add(loggingPanel);
+		chartWestPanel.add(loggingPanel,"span,wrap");
+		
+		final JPanel transparentPanel = new JPanel(new MigLayout());
+		transparentGroup.add(allowButton);
+		transparentGroup.add(fixButton);
+		fixButton.setSelected(logger.isDebugEnabled());
+		allowButton.setSelected(!logger.isDebugEnabled());
+		allowButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (allowButton.isSelected()) {
+					fixTransparentBlack=false;
+				}
+			}
+		});
+		fixButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (fixButton.isSelected()) {
+					fixTransparentBlack=true;
+				}
+			}
+		});
+
+		transparentPanel.add(new JLabel("Black becomes transparent"));
+		transparentPanel.add(allowButton);
+		transparentPanel.add(fixButton);
+		chartWestPanel.add(transparentPanel);
 
 		chartPanel.add(chartWestPanel, BorderLayout.WEST);
 		chartPanel.add(processingPanel, BorderLayout.CENTER);
@@ -369,7 +398,7 @@ public class InstalManager extends JFrame {
 					// Process the files
 					for (File f : files) {
 						logger.info("Processing " + f.getAbsolutePath());
-						processingPanel.process(f);
+						processingPanel.process(f,fixTransparentBlack);
 						long elapTime = System.currentTimeMillis() - startTime;
 						logger.info("Elapsed time "+elapTime/1000.+"\n");
 					}

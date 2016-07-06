@@ -62,7 +62,7 @@ public class ChartProcessor {
 	//Properties config = null;
 	private boolean manager=false;
 	private JTextArea textArea;
-	private ImageFilter filter = new TransparentImageFilter();
+	
 	private File mapCacheDir;
 
 	public ChartProcessor() throws Exception {
@@ -75,11 +75,11 @@ public class ChartProcessor {
 		this.textArea=textArea;
 	}
 
-	public void processChart(String file, boolean reTile) throws Exception {
+	public void processChart(String file, boolean reTile, boolean fixTransparentBlack) throws Exception {
 		File chartFile = new File(mapCacheDir,file);
-		processChart(chartFile, reTile);
+		processChart(chartFile, reTile, fixTransparentBlack);
 	}
-	public void processChart(File chartFile, boolean reTile) throws Exception {
+	public void processChart(File chartFile, boolean reTile, boolean fixTransparentBlack) throws Exception {
 		//make a file
 				mapCacheDir=chartFile.getParentFile();
 				if(!chartFile.exists()){
@@ -99,7 +99,7 @@ public class ChartProcessor {
 				//}else
 				//we have a KAP file
 				if(chartFile.getName().toUpperCase().endsWith("KAP")){
-					processKapChart(chartFile,reTile);
+					processKapChart(chartFile,reTile, fixTransparentBlack);
 				}else{
 					System.out.print("File "+chartFile.getAbsolutePath()+" not recognised so not processed\n");
 				}
@@ -156,9 +156,10 @@ public class ChartProcessor {
 	 * Reads the .kap file, and the generated tilesresource.xml to get
 	 * chart desc, bounding box, and zoom levels
 	 * @param chartFile
+	 * @param fixTransparentBlack 
 	 * @throws Exception
 	 */
-	public void processKapChart(File chartFile, boolean reTile) throws Exception {
+	public void processKapChart(File chartFile, boolean reTile, boolean fixTransparentBlack) throws Exception {
 		//String chartPath = chartFile.getParentFile().getAbsolutePath();
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
@@ -181,7 +182,7 @@ public class ChartProcessor {
 					  });
 				}
 			});
-			processor.createTilePyramid(chartFile, mapCacheDir);
+			processor.createTilePyramid(chartFile, mapCacheDir, fixTransparentBlack);
 		}
 		//now get the Chart Name from the kap file
 		FileReader fileReader = new FileReader(chartFile);
@@ -260,10 +261,6 @@ public class ChartProcessor {
 
 
 
-	public Image makeColorTransparent(Image im, final Color color) {
-		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-		return Toolkit.getDefaultToolkit().createImage(ip);
-    }
 	/**
 	 * First arg is chart filename, second is boolean reTile.
 	 * reTile = true causes the tiles to be recreated,
@@ -287,7 +284,7 @@ public class ChartProcessor {
 		}
 		//we have a file
 		ChartProcessor chartProcessor = new ChartProcessor();
-		chartProcessor.processChart(chartFile,reTile);
+		chartProcessor.processChart(chartFile,reTile, false);
 	}
 
 
