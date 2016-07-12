@@ -72,16 +72,14 @@ public class InstalManager extends JFrame {
 	private ChartFileChooser chartFileChooser = new ChartFileChooser();
 	private HexFileChooser hexFileChooser = new HexFileChooser();
 	private JFileChooser arduinoIdeChooser = new JFileChooser();
-	private JFileChooser pythonChooser = new JFileChooser();
 	private JTextField arduinoDirTextField = new JTextField(40);
-	private JTextField pythonTextField = new JTextField(40);
 	private JRadioButton infoButton = new JRadioButton("Info");
 	private JRadioButton debugButton = new JRadioButton("Debug");
 	private ButtonGroup loggingGroup = new ButtonGroup();
-	private JRadioButton allowButton = new JRadioButton("Allow");
-	private JRadioButton fixButton = new JRadioButton("Fix");
-	private ButtonGroup transparentGroup = new ButtonGroup();
-	private boolean fixTransparentBlack = false;
+	private JRadioButton utf8Button = new JRadioButton("UTF-8");
+	private JRadioButton iso8859Button = new JRadioButton("ISO-8859-1");
+	private ButtonGroup charsetGroup = new ButtonGroup();
+	private String charset = "UTF-8";
 	File toolsDir;
 	private long startTime;
 	JComboBox<String> deviceComboBox;
@@ -258,28 +256,28 @@ public class InstalManager extends JFrame {
 		chartWestPanel.add(loggingPanel,"span,wrap");
 		
 		final JPanel transparentPanel = new JPanel(new MigLayout());
-		transparentGroup.add(allowButton);
-		transparentGroup.add(fixButton);
-		fixButton.setSelected(logger.isDebugEnabled());
-		allowButton.setSelected(!logger.isDebugEnabled());
-		allowButton.addActionListener(new ActionListener() {
+		charsetGroup.add(utf8Button);
+		charsetGroup.add(iso8859Button);
+		iso8859Button.setSelected(logger.isDebugEnabled());
+		utf8Button.setSelected(!logger.isDebugEnabled());
+		utf8Button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (allowButton.isSelected()) {
-					fixTransparentBlack=false;
+				if (utf8Button.isSelected()) {
+					charset="UTF-8";
 				}
 			}
 		});
-		fixButton.addActionListener(new ActionListener() {
+		iso8859Button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (fixButton.isSelected()) {
-					fixTransparentBlack=true;
+				if (iso8859Button.isSelected()) {
+					charset="ISO-8859-1";
 				}
 			}
 		});
 
 		transparentPanel.add(new JLabel("Black becomes transparent"));
-		transparentPanel.add(allowButton);
-		transparentPanel.add(fixButton);
+		transparentPanel.add(utf8Button);
+		transparentPanel.add(iso8859Button);
 		chartWestPanel.add(transparentPanel);
 
 		chartPanel.add(chartWestPanel, BorderLayout.WEST);
@@ -398,7 +396,7 @@ public class InstalManager extends JFrame {
 					// Process the files
 					for (File f : files) {
 						logger.info("Processing " + f.getAbsolutePath());
-						processingPanel.process(f,fixTransparentBlack);
+						processingPanel.process(f,charset);
 						long elapTime = System.currentTimeMillis() - startTime;
 						logger.info("Elapsed time "+elapTime/1000.+"\n");
 					}
