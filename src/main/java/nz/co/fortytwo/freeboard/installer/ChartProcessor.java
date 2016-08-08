@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -263,7 +264,7 @@ public class ChartProcessor {
         logger.debug(snippet);
 		//add it to local freeboard.txt
         File layers = new File(dir,"freeboard.txt");
-        FileUtils.writeStringToFile(layers, snippet);
+        FileUtils.writeStringToFile(layers, snippet, StandardCharsets.UTF_8.name());
         //now zip the result
         logger.info("Zipping directory...");
 		ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
