@@ -275,7 +275,7 @@ public class InstalManager extends JFrame {
 			}
 		});
 
-		transparentPanel.add(new JLabel("Black becomes transparent"));
+		transparentPanel.add(new JLabel("KAP Character set:"));
 		transparentPanel.add(utf8Button);
 		transparentPanel.add(iso8859Button);
 		chartWestPanel.add(transparentPanel);
