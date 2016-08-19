@@ -64,7 +64,7 @@ class ProcessingPanel extends JPanel {
 		this.add(scrollPane);
 		}
 
-	public boolean process(File f) {
+	public boolean process(File f, String charset) {
 		// one at a time
 
 		//System.out.println("Processing " + f.getAbsolutePath());
@@ -72,7 +72,7 @@ class ProcessingPanel extends JPanel {
 			ChartProcessor processor = new ChartProcessor(true, textArea);
 			redirectSystemStreams();
 			logger.info("Processing " + f.getAbsolutePath());
-			processor.processChart(f, true);
+			processor.processChart(f, true, charset);
 
 		} catch (Exception e) {
 			System.out.print(e.getMessage() + "\n");

@@ -27,9 +27,14 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,11 +44,13 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.CharSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.signalk.maptools.KapObserver;
@@ -62,7 +69,7 @@ public class ChartProcessor {
 	//Properties config = null;
 	private boolean manager=false;
 	private JTextArea textArea;
-	private ImageFilter filter = new TransparentImageFilter();
+	
 	private File mapCacheDir;
 
 	public ChartProcessor() throws Exception {
@@ -75,11 +82,11 @@ public class ChartProcessor {
 		this.textArea=textArea;
 	}
 
-	public void processChart(String file, boolean reTile) throws Exception {
+	public void processChart(String file, boolean reTile, String charset ) throws Exception {
 		File chartFile = new File(mapCacheDir,file);
-		processChart(chartFile, reTile);
+		processChart(chartFile, reTile, charset);
 	}
-	public void processChart(File chartFile, boolean reTile) throws Exception {
+	public void processChart(File chartFile, boolean reTile, String charset) throws Exception {
 		//make a file
 				mapCacheDir=chartFile.getParentFile();
 				if(!chartFile.exists()){
@@ -99,7 +106,7 @@ public class ChartProcessor {
 				//}else
 				//we have a KAP file
 				if(chartFile.getName().toUpperCase().endsWith("KAP")){
-					processKapChart(chartFile,reTile);
+					processKapChart(chartFile,reTile, charset);
 				}else{
 					System.out.print("File "+chartFile.getAbsolutePath()+" not recognised so not processed\n");
 				}
@@ -156,9 +163,10 @@ public class ChartProcessor {
 	 * Reads the .kap file, and the generated tilesresource.xml to get
 	 * chart desc, bounding box, and zoom levels
 	 * @param chartFile
+	 * @param false 
 	 * @throws Exception
 	 */
-	public void processKapChart(File chartFile, boolean reTile) throws Exception {
+	public void processKapChart(File chartFile, boolean reTile, String charset) throws Exception {
 		//String chartPath = chartFile.getParentFile().getAbsolutePath();
 		String chartName = chartFile.getName();
 		chartName = chartName.substring(0,chartName.lastIndexOf("."));
@@ -181,14 +189,23 @@ public class ChartProcessor {
 					  });
 				}
 			});
-			processor.createTilePyramid(chartFile, mapCacheDir);
+			processor.createTilePyramid(chartFile, mapCacheDir, false);
 		}
+		//process the layer data
+		File xmlFile = new File(dir,"tilemapresource.xml");
+		
+		//read data from dirName/tilelayers.xml
+		SAXReader reader = new SAXReader();
+       
+        Document document=reader.read(new InputStreamReader(new FileInputStream(xmlFile),charset));
+      
+        logger.info("KAP file using "+charset);
 		//now get the Chart Name from the kap file
-		FileReader fileReader = new FileReader(chartFile);
+		InputStreamReader fileReader = new InputStreamReader(new FileInputStream(chartFile),charset);
 		char[] chars = new char[4096];
 		fileReader.read(chars);
 		fileReader.close();
-		String header = new String(chars);
+		String header = new String(new String(chars).getBytes(),"UTF-8");
 		int pos=header.indexOf("BSB/NA=")+7;
 		String desc = header.substring(pos,header.indexOf("\n",pos)).trim();
 		//if(desc.endsWith("\n"))desc=desc.substring(0,desc.length()-1);
@@ -202,11 +219,7 @@ public class ChartProcessor {
 		if(desc.length()>40){
 			desc=desc.substring(0,40);
 		}
-		//process the layer data
-
-		//read data from dirName/tilelayers.xml
-		SAXReader reader = new SAXReader();
-        Document document = reader.read(new File(dir,"tilemapresource.xml"));
+		
         //we need BoundingBox
         Element box = (Element) document.selectSingleNode( "//BoundingBox" );
         String minx = box.attribute("minx").getValue();
@@ -232,6 +245,7 @@ public class ChartProcessor {
 //			System.out.print("Zoom:"+minZoom+"-"+maxZoom+"\n");
 //		}
         logger.debug("Zoom:"+minZoom+"-"+maxZoom);
+        
         //cant have - in js var name
         String chartNameJs = chartName.replaceAll("^[^a-zA-Z_$]|[^\\w$]","_");
         String snippet = "\n\tvar "+chartNameJs+" = L.tileLayer(\"http://{s}.{server}:8080/mapcache/"+chartName+"/{z}/{x}/{y}.png\", {\n"+
@@ -251,7 +265,7 @@ public class ChartProcessor {
         logger.debug(snippet);
 		//add it to local freeboard.txt
         File layers = new File(dir,"freeboard.txt");
-        FileUtils.writeStringToFile(layers, snippet);
+        FileUtils.writeStringToFile(layers, snippet, StandardCharsets.UTF_8.name());
         //now zip the result
         logger.info("Zipping directory...");
 		ZipUtils.zip(dir, new File(dir.getParentFile(),chartName+".zip"));
@@ -261,10 +275,6 @@ public class ChartProcessor {
 
 
 
-	public Image makeColorTransparent(Image im, final Color color) {
-		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-		return Toolkit.getDefaultToolkit().createImage(ip);
-    }
 	/**
 	 * First arg is chart filename, second is boolean reTile.
 	 * reTile = true causes the tiles to be recreated,
@@ -288,7 +298,7 @@ public class ChartProcessor {
 		}
 		//we have a file
 		ChartProcessor chartProcessor = new ChartProcessor();
-		chartProcessor.processChart(chartFile,reTile);
+		chartProcessor.processChart(chartFile,reTile, "UTF-8");
 	}
 
 
