@@ -253,7 +253,8 @@ public class ChartProcessor {
         			"\t\tsubdomains: 'abcd',\n"+
         			"\t\tattribution: '"+chartName+" "+desc+"',\n"+
         			"\t\tminZoom: "+minZoom+ ",\n"+
-        			"\t\tmaxZoom: "+maxZoom+",\n"+
+        			"\t\tmaxNativeZoom: "+maxZoom+",\n"+
+        			"\t\tmaxZoom: "+(maxZoom+3)+",\n"+
         			"\t\ttms: true\n"+
         			"\t\t}).addTo(map);\n";
 
